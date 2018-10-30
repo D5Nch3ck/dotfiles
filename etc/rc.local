@@ -1,0 +1,2 @@
+/usr/local/bin/random-hostname.sh
+/usr/local/bin/dbus-uuidgen > /etc/machine-id

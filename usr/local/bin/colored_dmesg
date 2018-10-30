@@ -1,0 +1,114 @@
+#!/usr/bin/perl
+
+use strict;
+use Term::ExtendedColor qw(fg bg);
+
+use feature 'say';
+
+open(my $fh, '-|', 'dmesg') or die("Cant popen dmesg $!\n");
+chomp(my @data = <$fh>);
+close($fh);
+
+# Disable autoreset
+#Term::ExtendedColor::autoreset(0);
+
+for(@data) {
+  $_ =~ s/(usb)/fg('blue12', bg('bold', $1))/egi;
+  $_ =~ s/(disconnect)/bg('magenta16', fg('bold', $1))/egi;
+  $_ =~ s/(high speed)/fg('green20', fg('bold', $1))/egi;
+  $_ =~ s/(full speed)/fg('green12', fg('bold', $1))/egi;
+  $_ =~ s/(low speed)/fg('green4', fg('bold', $1))/egi;
+
+  # Disks detected
+  if($_ =~ /(^sd.*)\[(.+)\](.+)/) {
+    my $pre  = fg('grey18', $1) . fg('bold', '[');
+    my $disk = fg('yellow17', $2) . fg('bold', ']');
+    my $post = fg('grey18', $3);
+    say "$pre$disk$post";
+  }
+  # Out of memory
+  elsif($_ =~ /^(Out of memory): (.+) process (\d+) \((.+)\)/) {
+    my $pre  = fg('reverse', $1) . ': ';
+    my $kill = fg('bold', fg('green3', $2));
+    my $pid  = fg('bold', fg('green4', $3));
+    my $app  = fg('green1', $4);
+    my $post = fg('reverse', $5);
+    say "$pre$kill $pid ($app) $post";
+  }
+  elsif($_ =~ /^(Killed) (process) (\d+) \((.+)\)/) {
+    my $pre  = fg('reverse', $1) . ': ';
+    my $kill = fg('bold', fg('green3', $2));
+    my $pid  = fg('bold', fg('green4', $3));
+    my $app  = fg('green1', $4);
+    my $post = fg('reverse', $5);
+    say "$pre$kill $pid ($app) $post";
+  }
+  # segfault     app    PID
+  elsif($_ =~ /^(.+)\[(\d+)\]: (segfault) (.+)/) {
+    my $app  = fg('bold', fg('cyan24', $1));
+    my $pid  = fg('bold', fg('reverse', fg('red4', $2)));
+    my $seg  = fg('bold', $3);
+    my $post = fg('red2', $4);
+
+    say "$pid: $app - $seg $post";
+  }
+
+  elsif($_ =~ /(.+) (Direct-Access)\s+(.+)/) {
+    my $pre   = fg('grey18', $1);
+    my $acc   = fg('grey10', fg('bold', $2));
+    my $model = fg('purple14', fg('bold', $3));;
+    say "$pre $acc $model";
+  }
+
+  # EXT4-fs sdh1 warning: maximal mount count reached, running e2fsck is
+  # recommended
+  #
+  # and others
+  elsif($_ =~ /(.+) \((.+)\): (.+)/) {
+    my $fs   = fg('bold', $1);
+    my $disk = fg('bold', fg('green20', $2));;
+    my $post = fg('bold', $3);
+
+    say "$fs $disk $post";
+  }
+
+  elsif($_ =~ /^TCP: Peer/) {
+    say fg('italic', fg('gray20',  $_));
+  }
+  elsif($_ =~ /^(ACPI): (.+)/) {
+    say fg('bold', $1) . ": $2";
+  }
+
+  else {
+    say fg('green12', $_);
+  }
+}
+
+__END__
+
+=pod
+
+=head1 NAME
+
+colored-dmesg - colorize the dmesg output
+
+=head1 DESCRIPTION
+
+colored_dmesg demonstrates the color functions exported by L<Term::ExtendedColor>.
+
+=head1 AUTHOR
+
+  Magnus Woldrich
+  CPAN ID: WOLDRICH
+  magnus@trapd00r.se
+  http://japh.se
+
+=head1 REPORTING BUGS
+
+Report bugs to trapd00r@trapd00r.se
+
+=head1 COPYRIGHT
+
+Copyright (C) 2010, 2011 Magnus Woldrich
+
+=cut

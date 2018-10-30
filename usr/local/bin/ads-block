@@ -1,0 +1,33 @@
+#!/bin/sh
+
+# "include: /etc/unbound/ad-blacklist.conf" in /var/unbound/etc/unbound.conf
+# run this script as a daily cron
+#
+# The list URLs were taken from the pi-hole project.
+# More experimental lists are at https://github.com/pi-hole/pi-hole/blob/master/adlists.default
+if [ `id -u` != '0' ]; then
+  echo 'Usage: doas ./ads-block'
+  exit 1
+fi
+
+TMPFILE=$( mktemp /tmp/get_dns_blacklists-XXXXXXXXX )
+trap 'rm -f $TMPFILE; exit 1' EXIT KILL INT QUIT TERM
+
+(
+ ftp -VM -o- https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts | grep ^0.0.0.0 | awk '{ print $2 }'
+ ftp -VM -o- http://mirror1.malwaredomains.com/files/justdomains
+ ftp -VM -o- http://sysctl.org/cameleon/hosts | grep ^127.0.0.1 | awk '{ print $2 }'
+ curl -s     https://zeustracker.abuse.ch/blocklist.php?download=domainblocklist
+ ftp -VM -o- https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt
+ ftp -VM -o- https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
+ ftp -VM -o- https://hosts-file.net/ad_servers.txt | grep ^127.0.0.1 | awk '{ print $2 }'
+ ftp -VM -o- https://raw.githubusercontent.com/quidsup/notrack/master/trackers.txt | awk '{ print $1 }'
+) | tr -d "\r" | tr 'A-Z' 'a-z' | sed -e 's/\.$//' | grep -v -e '^#' | grep '\.' | sort -u |
+ while read domain; do
+    echo local-zone: \"$domain\" redirect
+    echo local-data: \"$domain. A 0.0.0.0\"
+done > $TMPFILE
+
+mv $TMPFILE /var/unbound/etc/blocked_sites.conf
+
+#rcctl reload unbound

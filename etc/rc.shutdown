@@ -1,0 +1,2 @@
+echo "\nDeleting dhclient.leases..."
+test -f /var/db/dhclient.leases.iwn0 && /bin/rm -v /var/db/dhclient.leases.iwn0

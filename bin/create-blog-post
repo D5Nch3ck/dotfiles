@@ -1,0 +1,18 @@
+#!/bin/sh
+
+progname=${0##*/}
+filename="$HOME/github/blog/content/posts/`date +"%Y"`/`date +"%m"`/"$1".md"
+test -z $1 && echo "Usage:\v ./$progname <filename>" && exit 1
+test ! -d $HOME/github/blog/content/posts/`date +'%Y'`/`date +'%m'` && 
+mkdir -p $HOME/github/blog/content/posts/`date +"%Y"`/`date +"%m"`
+
+echo "\
+Title:
+Slug: 		$1
+Date: 		`date +'%d/%m/%Y %H:%M'`
+Category:
+Tags:
+Author:		`git config user.name`
+Summary:
+">$filename &&
+vim $filename

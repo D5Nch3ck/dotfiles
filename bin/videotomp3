@@ -1,0 +1,2 @@
+#!/bin/sh
+ffmpeg -i "$1" -vn -ar 44100 -ac 2 -ab 192 -f mp3 "$2".mp3

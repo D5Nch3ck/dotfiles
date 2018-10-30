@@ -1,0 +1,9 @@
+source ~/.vimrc
+set viminfo=
+set nobackup
+set noswapfile
+set noundofile
+set nowritebackup
+set noshelltemp
+set history=0
+set cryptmethod=blowfish2

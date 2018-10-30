@@ -1,0 +1,2 @@
+#!/bin/sh
+pwgen -s -n $1 -c $2

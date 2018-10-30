@@ -1,0 +1,40 @@
+# vim:ft=python
+
+# import datetime
+import os
+import sys
+from pprint import pprint
+
+try:
+    import readline
+except ImportError:
+    print("Readline is not installed, no tab completion is enabled.")
+    readline = None
+
+try:
+    get_ipython
+except NameError:
+    in_ipython = False
+else:
+    in_ipython = True
+
+if not in_ipython:
+    try:
+        from jedi.utils import setup_readline
+        setup_readline()
+        print("Using jedi completion")
+    except ImportError:
+        # Fallback to the stdlib readline completer if it is installed.
+        # Taken from http://docs.python.org/2/library/rlcompleter.html
+        print("Jedi is not installed, falling back to readline")
+        readline.parse_and_bind("tab: complete")
+
+import atexit
+import rlcompleter
+
+histfile = os.path.join(os.environ["HOME"], ".pythonhistory")
+if os.path.isfile(histfile):
+    readline.read_history_file(histfile)
+atexit.register(readline.write_history_file, histfile)
+print("Python shell history: {}".format(histfile))
+del histfile, readline, rlcompleter, atexit

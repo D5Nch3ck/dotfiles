@@ -1,0 +1,25 @@
+#!/bin/sh
+
+echo "freevpnbe">$HOME/Downloads/freevpn/FreeVPNbe-password.txt
+ftp -VM -o- https://freevpn.be/accounts/ | sed 's/<[^>]*>//g' |
+awk '/Password:/{print $8}' | tail -1 | sed 's/TCP*.*//g' >>$HOME/Downloads/freevpn/FreeVPNbe-password.txt
+
+echo "freevpnme">$HOME/Downloads/freevpn/FreeVPNme-password.txt
+ftp -VM -o- https://freevpn.me/accounts/ | sed 's/<[^>]*>//g' |
+awk '/Password:/{print $12}' | tail -1 | sed 's/TCP*.*//g' >>$HOME/Downloads/freevpn/FreeVPNme-password.txt
+
+echo "freevpnit">$HOME/Downloads/freevpn/FreeVPNit-password.txt
+ftp -VM -o- https://freevpn.it/accounts/ | sed 's/<[^>]*>//g' |
+awk '/Password:/{print $8}' | tail -1 | sed 's/TCP*.*//g'>>$HOME/Downloads/freevpn/FreeVPNit-password.txt
+
+echo "freevpnse">$HOME/Downloads/freevpn/FreeVPNse-password.txt
+ftp -VM -o- https://freevpn.se/accounts/ | sed 's/<[^>]*>//g' |
+awk '/Password:/{print $8}' | tail -1 | sed 's/TCP*.*//g'>>$HOME/Downloads/freevpn/FreeVPNse-password.txt
+
+echo "freevpncouk">$HOME/Downloads/freevpn/FreeVPNcouk-password.txt
+ftp -VM -o- https://freevpn.co.uk/accounts/ | sed 's/<[^>]*>//g' |
+awk '/Password:/{print $8}' | tail -1 | sed 's/TCP*.*//g'>>$HOME/Downloads/freevpn/FreeVPNcouk-password.txt
+
+echo "freevpnim">$HOME/Downloads/freevpn/FreeVPNim-password.txt
+ftp -VM -o- https://freevpn.im/accounts/ | sed 's/<[^>]*>//g' |
+awk '/Password:/{print $8}' | tail -1 | sed 's/TCP*.*//g'>>$HOME/Downloads/freevpn/FreeVPNim-password.txt

@@ -1,0 +1,12 @@
+  set from      = "d5nch3ck@disroot.org"
+  set sendmail  = "/usr/local/bin/msmtp -a disroot"
+  set mbox      = "+disroot/all_mail"
+  unset record
+  set postponed     = "+disroot/drafts"
+  set signature     = ~/.mutt/accounts/disroot_sig
+  set pgp_sign_as	= 0xCE8D015B2F961358
+
+color status green default
+
+# vim: ft=muttrc
+

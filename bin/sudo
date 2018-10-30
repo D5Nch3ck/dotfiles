@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if [ "$#" -gt "0" ];then
+	eval su root -c \"$@\"
+else
+	su -l root
+fi 

@@ -1,0 +1,9 @@
+split-window -v -l 7  'python2 ~/.local/bin/voltron view disasm'
+split-window -h -l 35 'python2 ~/.local/bin/voltron view bt'
+select-pane -D
+split-window -h -l 35 'python2 ~/.local/bin/voltron view reg -v'
+select-pane -L
+split-window -v -l 11 'python2 ~/.local/bin/voltron view cmd "x/32x \$pc"'
+swap-pane -U
+split-window -v -l 11 'python2 ~/.local/bin/voltron view stack'
+select-pane -D

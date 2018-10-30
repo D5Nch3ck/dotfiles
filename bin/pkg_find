@@ -1,0 +1,299 @@
+#!/bin/sh
+# $Id: pkg_find,v 1.7 2006/01/18 19:38:10 mike Exp $
+#
+# Search a local package list for a package and optionally install it.
+# pkg_find will use PKG_PATH and download a list of packages to search through.
+#
+# Copyright (c) 2006 Michael Erdely <mike@erdelynet.com>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# License information copied from /usr/sbin/pkg_add,v 1.211 by me
+
+# Grab version from CVS Id tag
+VERSION=`head -2 $0 | tail -1 | cut -d ' ' -f 4`
+VERDATE=`head -2 $0 | tail -1 | cut -d ' ' -f 5`
+
+# Define PKG_FIND
+PKG_FIND=`basename $0`
+
+# Exit if not running OpenBSD
+if [ `uname -s` != "OpenBSD" ]; then
+  echo Error: $PKG_FIND only runs on OpenBSD.
+  exit
+fi
+
+# If running OpenBSD 3.7 or later, enable -r
+case `uname -r` in
+  1.*|2.*|3.[0123456])
+    R_OPT=""
+    ;;
+  *)
+    R_OPT=-r
+    ;;
+esac
+
+# Read /etc/mk.conf for SUDO variable
+#[ -f /etc/mk.conf ] && . /etc/mk.conf
+SUDO="doas"
+
+# Read ${HOME}/.pkg_findrc for default settings
+[ -f ${HOME}/.pkg_findrc ] && . ${HOME}/.pkg_findrc
+
+# Default PKG_LIST size (for error checking). If smaller than 10k, there's
+# probably something wrong.
+MIN_SIZE=${MIN_SIZE:=10}
+
+# Default age (in days) for the local package list.  If older, update (unless
+# UPDATE or -u specified
+DAYS=${DAYS:=7}
+
+# Default PKG_PATH if none specified
+#PKG_PATH=${PKG_PATH:=ftp://ftp3.usa.openbsd.org/pub/OpenBSD/`uname -r`/packages/`arch -s`}
+PKG_PATH=${PKG_PATH:=https://ftp.eu.openbsd.org/pub/OpenBSD/snapshots/packages/`arch -s`}
+# Default INSTALL setting (-i or -n will override)
+INSTALL=${INSTALL:=YES}
+
+# Default PROMPT setting (-p or -q will override)
+PROMPT=${PROMPT:=YES}
+
+# Default update mode. If env var set or from ${HOME}/.pkg_findrc, update
+# everytime
+UPDATE=${UPDATE:=NO}
+
+# Default debug mode
+DEBUG=${DEBUG:=NO}
+
+# Default verbosity mode
+VERBOSE=${VERBOSE:=NO}
+
+# Default test mode
+TEST=${TEST:=NO}
+
+# Print out command usage
+usage() {
+  echo -n "Usage: ${PKG_FIND} [-h] [-u] [-i|-n] [-p|-q] [-v] [-d] [-t]"
+  echo " search_string"
+  echo "	-i|--install	Install package"
+  echo "	-n|--no-install	Do not install package"
+  echo "	-p|--prompt	Prompt to install when just one match"
+  echo "	-q|--quiet	Do not prompt to install when just one match"
+  echo "	-u|--update	Update package list (if -u is specified and no"
+  echo "			search_string, list will update and script will"
+  echo "			exit"
+  echo "	-v|--verbose	Be verbose"
+  echo "	-d|--debug	Debug"
+  echo "	-t|--test	Test mode. Print command that would be run"
+  echo "	-V|--version	Print version and exit"
+  echo "	-h|--help	Print this screen and exit"
+  exit 1
+}
+
+# Check command line arguments
+while [ $1 ]; do
+  case $1 in
+    -i|--install)
+      INSTALL=YES
+      shift
+      ;;
+    -n|--no-install)
+      INSTALL=NO
+      shift
+      ;;
+    -p|--prompt)
+      PROMPT=YES
+      shift
+      ;;
+    -q|--quiet)
+      PROMPT=NO
+      shift
+      ;;
+    -u|--update)
+      UPDATE=YES
+      U_OPT=YES
+      shift
+      ;;
+    -v|--verbose)
+      VERBOSE=YES
+      shift
+      ;;
+    -d|--debug)
+      DEBUG=YES
+      shift
+      ;;
+    -t|--test)
+      TEST=YES
+      shift
+      ;;
+    -V|--version)
+      echo "${PKG_FIND} ${VERSION} (${VERDATE})"
+      echo "Created by Michael Erdely <mike@erdelynet.com>"
+      exit
+      shift
+      ;;
+    -h|-help|--help)
+      usage
+      shift
+      ;;
+    -*)
+      echo "$PKG_FIND: unknown option -- `echo $1 | tr -d '-'`"
+      usage
+      shift
+      ;;
+    *)
+      SRCH=$1
+      shift
+      ;;
+  esac
+done
+
+# If neither SRCH nor -u are specified, show usage and quit
+[ "${SRCH}" = "" -a "${U_OPT}" != "YES" ] && usage
+
+# Turn on sh debug trace
+[ "${DEBUG}" = "YES" ] && set -o xtrace
+
+# Path for pkg_add
+PKG_ADD=/usr/sbin/pkg_add
+
+# Determine mode for accessing packages
+if [ `echo ${PKG_PATH} | cut -c 1-6` = "ftp://" ]; then
+  TRANS=ftp
+elif [ `echo ${PKG_PATH} | cut -c 1-6` = "scp://" ]; then
+  TRANS=scp
+elif [ `echo ${PKG_PATH} | cut -c 1-8` = "https://" ]; then
+  TRANS=https
+elif [ `echo ${PKG_PATH} | cut -c 1-7` = "http://" ]; then
+  TRANS=http
+else
+  TRANS=local
+fi
+
+# Set up package list cache directory. PKG_LIST contains server and OpenBSD
+# version information to attempt to avoid conflicts, especially with upgrades.
+PKG_LIST_DIR=${HOME}/.${PKG_FIND}
+if [ ! -d ${PKG_LIST_DIR} ]; then
+  mkdir ${PKG_LIST_DIR} || \
+    ( echo Error: Could not create ${PKG_LIST_DIR} ; exit 2 )
+fi
+PKG_LIST=${PKG_LIST_DIR}/`echo ${PKG_PATH#${TRANS}://} | tr / _`
+
+# Create a tmpfile and make it ${DAYS} old
+local OLDFILE=`mktemp`
+touch -t `date -r $((\`date +%s\` - 60*60*24*${DAYS})) "+%Y%m%d%H%M"` \
+	${OLDFILE}
+
+# If the package list doesn't exist or is older than ${DAYS} days or UPDATE or
+# -u is specified, create a new package list.
+if [ ${PKG_LIST} -ot ${OLDFILE} -o "${UPDATE}" = "YES" ]; then
+  if [ `echo ${PKG_PATH} | cut -c 1-6` = "ftp://" ]; then
+    echo -n Updating Local Package List via FTP...
+    FTPHOST=`echo ${PKG_PATH} | cut -c 7- | cut -d/ -f1`
+    FTPDIR=`echo ${PKG_PATH} | cut -c 7- | cut -d/ -f2-`
+    echo "cd ${FTPDIR}\nnlist" | ftp -a ${FTPHOST} | sort > ${PKG_LIST}
+  elif [ `echo ${PKG_PATH} | cut -c 1-6` = "scp://" ]; then
+    echo -n Updating Local Package List via SCP...
+    SCPHOST=`echo ${PKG_PATH} | cut -c 7- | cut -d: -f1`
+    SCPDIR=/`echo ${PKG_PATH} | cut -c 7- | cut -d/ -f2-`
+    /usr/bin/ssh ${SCPHOST} "/bin/ls -1 ${SCPDIR}" | sort > ${PKG_LIST}
+  elif [ `echo ${PKG_PATH} | cut -c 1-8` = "https://" ]; then
+    curl -s ${PKG_PATH}/index.txt | cut -c 53- > $PKG_LIST
+  elif [ `echo ${PKG_PATH} | cut -c 1-7` = "http://" ]; then
+    ftp -Vo ${PKG_LIST} ${PKG_PATH}/index.txt > /dev/null
+  else
+    echo -n Updating Local Package List via ls...
+    /bin/ls -1 ${PKG_PATH}/ | sort > ${PKG_LIST}
+  fi
+  if [ ! -f ${PKG_LIST} ]; then
+    echo Error: ${PKG_LIST} could not be created.
+    exit 3
+  fi
+  if [ `du -k ${PKG_LIST} | cut -f1` -lt ${MIN_SIZE} ]; then
+    echo Error: ${PKG_LIST} is smaller than ${MIN_SIZE}, please investigate.
+    exit 4
+  fi
+  echo Done.
+fi
+rm -Rf ${OLDFILE}
+
+# If no SRCH string specified, exit
+[ "${SRCH}" = "" ] && exit 5
+
+# Create a string variable of all packages, stripping .tgz and excluding
+# .listing and index.txt. TOTAL is the count of packages matching SRCH
+PKGS=`sed 's/\.tgz//' ${PKG_LIST} | /usr/bin/grep -Ev "^(\.listing|index\.txt)$" | \
+      /usr/bin/grep -iE "${SRCH}"`
+TOTAL=`echo "${PKGS}" | /usr/bin/grep -c .`
+if [ "${TOTAL}" -gt 1 ]; then
+  echo "${PKGS}" | cat -n | more
+  if [ "${INSTALL}" = "YES" ]; then
+    echo -n "Pick which package to add: "
+    read PKG_NUM
+    if [ ${PKG_NUM} -lt 1 -o ${PKG_NUM} -gt ${TOTAL} ]; then
+      echo ERROR: Out of range
+      exit 6
+    fi
+    PKG=`echo "${PKGS}" | head -${PKG_NUM} | tail -1`
+  else
+    echo "To install, run \"${SUDO} pkg_add package_name\"."
+    exit 7
+  fi
+elif [ "${TOTAL}" = "1" ]; then
+  PKG=${PKGS}
+  if [ "${INSTALL}" = "YES" ]; then
+    if [ "${PROMPT}" = "YES" ]; then
+      echo -n "Install ${PKG}? "
+      read INSTALL
+      case $INSTALL in
+        [Yy]*)
+          ;;
+        *)
+          echo "To install, run \"${PKG_FIND} -i ${SRCH}\"."
+          exit 8
+          ;;
+      esac
+    fi
+  else
+    echo "${PKG}"|cat -n
+    echo "To install, run \"${PKG_FIND} -i ${SRCH}\"."
+    exit 9
+  fi
+else
+  echo ERROR: ${SRCH} not found in package list
+  exit 10
+fi
+
+# If you're not root and ${SUDO} is undefined, give an error
+if [ `id -u` != 0 ]; then
+  if [ -z ${SUDO} ]; then
+    echo ERROR: You must be root to install packages
+    exit 11
+  else
+    PKG_ADD="${SUDO} ${PKG_ADD}"
+  fi
+fi
+
+case ${VERBOSE} in
+  [Yy]*)
+    PKG_ADD="${PKG_ADD} -v"
+    ;;
+esac
+
+case ${TEST} in
+  [Yy]*)
+    PKG_ADD="echo ${PKG_ADD}"
+    ;;
+esac
+
+# Do it
+${PKG_ADD} ${R_OPT} ${PKG_PATH}/${PKG}.tgz

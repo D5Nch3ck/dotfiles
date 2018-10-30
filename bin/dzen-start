@@ -1,0 +1,2 @@
+#!/bin/sh
+conky -q | ksh | dzen2 -h '19' -ta r -fn "-*-fixed-medium-r-*-*-14-*-*-*-*-*-*-*" &

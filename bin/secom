@@ -1,0 +1,3 @@
+#!/bin/sh
+# Secure commands
+gpg2 -qd /usr/local/bin/"$1" | sh -

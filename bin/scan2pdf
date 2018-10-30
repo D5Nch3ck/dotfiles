@@ -1,0 +1,23 @@
+#!/bin/sh
+# Scan an a4 page, compress the image, convert it to pdf
+# Required packages: sane, libtiff
+
+if [[ -z $1 || ${1: -4} != ".pdf" ]]; then
+    echo "Usage: ./scan2pdf filename.pdf"
+    exit 1
+fi
+
+output="$1"
+tmp_tiff=".tmp.tiff"
+
+echo -n "Scanning TIFF image..." &&
+    scanimage --format=tiff --resolution 300 > "$tmp_tiff" &&
+    echo "success." || exit 1
+
+echo -n "Converting TIFF to PDF..." &&
+    tiff2pdf -j -o "$output" "$tmp_tiff" &&
+    echo "success." || exit 1
+
+echo -n "Removing temp TIFF file..." && 
+    rm "$tmp_tiff" &&
+    echo "success." || { echo "FAILED!" >%2; exit 1; }

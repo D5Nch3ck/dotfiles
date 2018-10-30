@@ -1,0 +1,80 @@
+#
+# ~/.offlineimaprc
+#
+[general]
+ui = ttyui
+accounts = disroot,riseup
+maxsyncaccounts = 2
+pythonfile = ~/.mutt/nametrans.py
+
+[mbnames]
+enabled = yes
+filename = ~/.mutt/mailboxes
+header = "mailboxes "
+peritem = "+%(accountname)s/%(foldername)s"
+sep = " "
+footer = "\n"
+
+[Account disroot]
+localrepository = disroot-local
+remoterepository = disroot-remote
+# background: minutes between syncs; num quick-syncs between auto refreshes
+autorefresh = 3
+quick = 6
+
+[Account riseup]
+localrepository = riseup-local
+remoterepository = riseup-remote
+# background: minutes between syncs; num quick-syncs between auto refreshes
+autorefresh = 3
+quick = 6
+ 
+[Repository disroot-local]
+type = Maildir
+localfolders = ~/.mutt/maildir/disroot
+nametrans = nt_local
+
+[Repository riseup-local]
+type = Maildir
+localfolders = ~/.mutt/maildir/riseup
+nametrans = nt_local
+
+
+
+[Repository disroot-remote]
+auth_mechanisms = LOGIN
+type = IMAP
+remotehost = disroot.org
+remoteuser = d5nch3ck@disroot.org
+#remotepass  = you-pass
+remotepasseval = disroot()
+#remoteport = 993
+realdelete = yes
+postsynchook = notmuch new
+maxconnections = 3
+nametrans = nt_remote
+ssl = yes
+sslcacertfile = /etc/ssl/cert.pem
+# background: seconds to hold connection between; requires 'autorefresh' set
+keepalive = 60
+holdconnectionopen = yes
+folderfilter = lambda foldername: foldername in ['INBOX','INBOX.Sent', 'INBOX.Drafts']
+
+[Repository riseup-remote]
+auth_mechanisms = LOGIN
+type = IMAP
+remotehost = mail.riseup.net
+remoteuser = ******@riseup.net
+#remotepass  = your-passwd
+remotepasseval = riseup()
+#remoteport = 993
+realdelete = yes
+postsynchook = notmuch new
+maxconnections = 3
+nametrans = nt_remote
+ssl = yes
+sslcacertfile = /etc/ssl/cert.pem
+# background: seconds to hold connection between; requires 'autorefresh' set
+keepalive = 60
+holdconnectionopen = yes
+folderfilter = lambda foldername: foldername in ['INBOX','INBOX.Sent', 'INBOX.Drafts']

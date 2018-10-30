@@ -1,0 +1,3 @@
+#!/bin/sh
+supertux2 --datadir /usr/local/share/supertux2 --no-show-fps \
+--no-show-pos --disable-sound --disable-music -g 700x500 --renderer sdl

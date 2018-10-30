@@ -1,0 +1,30 @@
+#!/bin/sh
+
+progname=${0##*/}
+
+function usage {
+cat <<USAGE
+Usage:
+    ${progname} [-d|--disroot] <password> <filename>
+    ${progname} [-r|--riseup] <password> <filename>
+USAGE
+}
+
+test -z $1 && usage;exit 1
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -d|--disroot)
+            echo "$2" | gpg2 --encrypt --recipient "disroot-gpg-name" -o $3.gpg
+            exit 0;;
+        -r|--riseup)
+			echo "$2" | gpg2 --encrypt --recipient "riseup-gpg-name" -o $3.gpg
+            exit 0;;
+        -h|--help)
+            usage
+            exit 1;;
+        *)
+            usage
+            exit 1;;
+    esac
+done

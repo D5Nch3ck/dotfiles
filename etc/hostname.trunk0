@@ -1,0 +1,2 @@
+trunkproto failover trunkport em0 trunkport iwn0
+dhcp

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+if [[ ! -d "$TMPDIR" ]]; then
+  export TMPDIR="/tmp/$LOGNAME"
+  mkdir -p -m 700 "$TMPDIR"
+fi
+
+#if [ ! -S "$HOME/.gnupg/S.gpg-agent" ];then
+ if [ -x /usr/local/bin/keychain ];then
+    eval $(keychain --quick --gpg2 --dir $TMPDIR --nolock --agents ssh,gpg,gpg \
+                    --eval git_rsa 0xGPG_DISROOT 0xGPG_RISEUP)
+	echo "export SSH_AGENT_PID=$SSH_AGENT_PID; export SSH_AUTH_SOCK=$SSH_AUTH_SOCK" > $TMPDIR/keychain-ssh_agent
+ fi
+#fi

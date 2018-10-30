@@ -1,0 +1,34 @@
+#!/bin/sh
+#  $ pkg_fw
+#  index.txt    100% |*************************************|  1674       00:00
+#  SHA256       100% |*************************************|  1838       00:00
+#  SHA256.sig   100% |*************************************|  1855       00:00
+#  intel-firmware-2018080... 100% |************************|  1548 KB    00:14
+#  iwn-firmware-5.11p1.tgz 100% |**************************|  3158 KB    00:29
+#  uvideo-firmware-1.2p2.tgz 100% |************************| 68200       00:00
+#  vmm-firmware-1.11.0p0.tgz 100% |************************| 45956       00:00
+#  (SHA256) athn-firmware-1.1p4.tgz: OK
+#  (SHA256) intel-firmware-20180807v0.tgz: OK
+#  (SHA256) iwn-firmware-5.11p1.tgz: OK
+#  (SHA256) radeondrm-firmware-20170119.tgz: OK
+#  (SHA256) uvideo-firmware-1.2p2.tgz: OK
+#  (SHA256) vmm-firmware-1.11.0p0.tgz: OK
+
+server="http://firmware.openbsd.org"
+down_dir="$HOME/Downloads/obsd-firmware/"
+setver=$(uname -r | tr -d \.)
+
+[[ -d $down_dir ]] || mkdir -p -m 700 $down_dir
+
+ftp -Vm -o- "$server"/firmware/snapshots/index.txt | cut -c 50- |
+			egrep -w 'iwn|vmm|intel|uvideo|SHA256*' >$TMPDIR/firmware.txt
+
+cd -- $down_dir
+
+for i in $(cat $TMPDIR/firmware.txt);
+ do
+        ftp -V "$server"/firmware/snapshots/$i;
+ done
+
+signify -V -e -p /etc/signify/openbsd-${setver}-fw.pub -x $down_dir/SHA256.sig -m - |
+				 								   sha256 -C - $(ls | egrep -e 'tgz')

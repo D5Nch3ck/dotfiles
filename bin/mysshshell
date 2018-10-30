@@ -1,0 +1,2 @@
+#!/bin/sh
+sshpass -p `gpg2 -qd  ~/.pass-store/sshpass.gpg` ssh -L 6667:localhost:3333 root@`cat ~/.sship` -p 2207

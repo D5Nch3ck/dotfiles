@@ -1,0 +1,30 @@
+#!/bin/sh
+
+RED="\033[0;31m"
+RST="\033[1;0m"
+
+if [[ -z $1 ]]; then
+  echo -e "$RED Error:$RST No channel specified.\n"
+  exit 1
+fi
+
+playlist="$HOME/.tv_playlist"
+
+if [[ -f "$playlist" ]]; then
+  search_results="$(ggrep -i "$1" $playlist)"
+  num_results=$(echo "$search_results" | wc -l | xargs)
+
+  if [[ -z "$search_results" ]]; then
+    echo -e "$RED Channel not found\n$RST"
+    exit 1
+  elif [[ $num_results > 1 ]]; then
+    echo -e "$search_results\n"
+    echo -e "$RED Multitple results found. Refine search.\n$RST"
+    exit 1
+  else
+    sh -c 'mpv -really-quiet -cache 2048 "$search_results"'
+  fi
+else
+  echo -e "$RED Playlist not found\n$RST"
+  exit 1
+fi
