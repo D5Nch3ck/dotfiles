@@ -3,7 +3,7 @@ if has("win32") || has("win64")
     let g:is_unix=0
 endif
 
-"Set shell to be bash
+"Set shell to be ksh
 if g:is_unix
     set shell=ksh
 else
@@ -282,7 +282,7 @@ if has("gui_running")
     set go=aAce  " remove toolbar
     set guicursor=a:block-blinkon0
     "set transparency=30
-    set guifont=Inconsolata\ for\ Powerline\ 14
+    set guifont=Mensch\ 13
     set showtabline=2
     set columns=140
     set lines=40

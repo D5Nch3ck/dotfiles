@@ -8,9 +8,9 @@ xset fp default
 xset fp rehash
 
 #urxvtd -q -o -f &
-/home/$USER/bin/new_mail_sound.sh &
-/home/$USER/bin/multiple-tmux &
-/home/$USER/bin/dzen-start &
+$HOME/bin/new_mail_sound.sh &
+$HOME/bin/multiple-tmux &
+$HOME/bin/dzen-start &
 
 xsetroot -solid black &
 xset -dpms

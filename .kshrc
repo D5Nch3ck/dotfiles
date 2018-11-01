@@ -47,6 +47,8 @@ export VIRTUALENVWRAPPER_PYTHON="/usr/local/bin/python3.6"
 export PKG_CACHE="/var/db/Packages/snapshots/`arch -s`/" #  mkdir -p $PKG_CACHE
 # Home directory for virtualenvwrapper
 export WORKON_HOME="$HOME/.virtualenvs"
+# color man-pages persistently
+export PAGER='most'
 #######################################
 . $HOME/.kshrc.alias
 
