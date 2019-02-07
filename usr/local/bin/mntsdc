@@ -1,0 +1,42 @@
+#!/bin/sh
+if [[ ! -d /mnt/sdcard ]];then
+        mkdir -p /mnt/sdcard
+fi
+
+/sbin/mount | grep "mnt/sdcard">/dev/null
+if [[ "$?" -eq 0 ]]; then
+    echo "mount /mnt/sdcard"
+    exit 1
+fi
+
+for i in $(sysctl -n hw.disknames|sed  's/,/ /g')
+do
+  echo $i
+done >/tmp/disks
+
+systemdisk="$(dmesg|grep 'WDC WD1600BEVT-2'|tail -1|awk '{print $1}')"
+controll="$(cat /tmp/disks |grep '3f309623633c2331e' | sed 's/:/ /g'|cut -d' ' -f1)"
+sdcard="$(dmesg|grep 'R5U880'|tail -1|awk '{print $1}')"
+control="$(cat /tmp/disks |grep '5f57563e496a5b23' | sed 's/:/ /g'|cut -d' ' -f1)"
+
+if [[ ${sdcard} != ${control} ]];then
+      echo "SDCARD: not found!"
+      exit 123
+fi
+if [[ ${systemdisk} != ${controll} ]];then
+      echo "SYSTEM DISK: not found!"
+      exit 123
+fi
+bio_disk="$(bioctl softraid0 | grep '1965571584' | awk '{print $5}'|head -1)"
+if [ "${#bio_disk}" == "3" ];then
+   bioctl -d $bio_disk
+fi
+mount_disk="`bioctl -c C -r 999999999 -l /dev/${sdcard}a -k /dev/${systemdisk}e softraid0|grep 'CRYPTO'|awk '{print $6}'`"
+sleep 1
+mount /dev/${mount_disk}a /mnt/sdcard
+if [[ "$?" -eq 0 ]]; then
+   echo "Mount: /mnt ${mount_disk}/sdcard"
+else
+   echo "Err: mount /mnt/sdcard\nFix command: # umount /mnt/sdcard"
+   exit 1
+fi

@@ -1,13 +1,23 @@
 #!/usr/bin/perl
+# vim:ft=perl:et:
+package App::lsplusplus;
 my $APP = 'ls++';
-use vars qw($VERSION);
-$VERSION = '0.36';
+our $VERSION = '0.52';
 
 use strict;
 use Term::ExtendedColor qw(fg uncolor);
 use Pod::Usage;
 use Getopt::Long;
 use Time::Local;
+#use Data::Dumper;
+#
+#{
+#  package Data::Dumper;
+#  no strict 'vars';
+#  $Terse = $Indent = $Useqq = $Deparse = $Sortkeys = 1;
+#  $Quotekeys = 0;
+#}
+
 
 my $ls       = '/usr/local/bin/gls';
 my @ls_opts  = get_ls_cmdline();
@@ -22,7 +32,7 @@ if(not _init_config()) {;
   die "No configuration file found\n";
 }
 
-our(@c, @d, %ls_colors, $symlink_delim, $symlink_color);
+our(@c, @d, %ls_colors, $symlink_delim, $symlink_color, $symlink_attr);
 
 my $colors = _get_color_support();
 my ($sizelen, $stringlen, $permlen);
@@ -84,7 +94,7 @@ for my $opt(@ls_opts) {
 }
 @ls_opts = @ls_opts_cleaned;
 
-if( !(exists($ENV{DISPLAY})) and ($ENV{TERM} =~ m/^linux/) ) {
+if( !(exists($ENV{DISPLAY})) and ($ENV{TERM}) ) {
   @d = (' ', ' ', ' ', ' ');
   $ENV{LS_COLORS} = '';
   $colors = 16;
@@ -158,7 +168,7 @@ sub ls {
       }
     ($userpad, $grouppad) = $line =~ m/\d+\s+\S+\s(\s*)\S+(\s*)\s.{$sizelen}\s\d+\s+.*/;
     }
-    elsif( ($^O eq 'darwin') or ($^O =~ /.+bsd$/) ) {
+    elsif ($^O eq 'darwin') {
         ($perm, $hlink, $user, $group, $size, $month, $day, $time, $year, $file) = split(/\s+/, $line, 10);
         chop($file);
         if( (!$day) ) {
@@ -197,7 +207,6 @@ sub ls {
       next;
     }
 
-    my $symlink_attr = 'italic';
     if($ENV{TERM} =~ m/xterm/) {
       # NOTE xterm does not support italics
       $symlink_attr = '';
@@ -208,14 +217,14 @@ sub ls {
 
     if($^O eq 'openbsd') {
       $rel = relative_time($the_time, $seconds);
-    } elsif ( ($^O eq 'darwin') or ($^O =~ /.+bsd$/) ) {
+    } elsif ($^O eq 'darwin') {
       $rel = relative_time($the_time, $seconds);
     } else {
       $rel = '';
     }
     $perm = perm($perm);
 
-    if( ($^O eq 'darwin') or ($^O =~ /.+bsd$/) ) {
+    if ($^O eq 'darwin') {
       $size = size($size);
       $size =~ s/\s{6}//;
 
@@ -284,14 +293,31 @@ sub add_ls_color {
   for my $pattern(keys(%ls_colors)) {
     my $no_ls_color_file = uncolor($file);
 
-    if($no_ls_color_file =~ /$pattern/) {
+    # check if file is a directory and add a / suffix for simple
+    # matching in ls++.conf
+    if(-d $no_ls_color_file) {
+      $no_ls_color_file .= '/' unless $no_ls_color_file =~ m{/$};
+    }
+
+    if($no_ls_color_file =~ m{$pattern}) {
+      $file = $no_ls_color_file;
       if($ls_colors{$pattern} eq 'IGNORE') {
         return undef;
       }
-      $file = $no_ls_color_file;
-      $file = fg($ls_colors{$pattern}, $file);
+
+#      # add attributes
+#      # 'README$' => 'bold italic 220 underline',
+      for my $attr(split(/ /, $ls_colors{$pattern})) {
+        $file = fg($attr, $file);
+        # if several attributes are specified, the END sequence is added
+        # more than once. let's get rid of it so we can remove match and
+        # remove the trailing /
+        $file =~ s{(\e\[0?m)+}{$1}g;
+      }
     }
   }
+  # remove the trailing slash again
+  $file =~ s{/(\e\[0?m)$}{$1};
   return $file;
 }
 
@@ -397,7 +423,7 @@ sub perm {
   $perm =~ s/(w)/fg($c[7], $1)/eg;
   $perm =~ s/(x)/fg($c[1], $1)/eg;
 
-  $perm =~ s/(d)/fg($c[2],  fg('bold', $1))/eg;
+  $perm =~ s/(d)/fg($c[16],   fg('bold', $1))/eg;
   $perm =~ s/(l)/fg($c[8],  fg('bold', $1))/eg;
   $perm =~ s/(s)/fg($c[11], $1)/eg;
   $perm =~ s/(S)/fg($c[8],  $1)/eg;
@@ -594,7 +620,7 @@ sub _init_config {
   }
 
   my @locations = (
-    "./ls++.conf",
+#    "./ls++.conf",
     "$ENV{XDG_CONFIG_HOME}/ls++/ls++.conf",
     "$ENV{HOME}/.config/ls++/ls++.conf",
     "$ENV{HOME}/.ls++.conf",
@@ -637,9 +663,9 @@ sub get_ls_where {
 sub get_ls_cmdline {
   my $os = get_os();
 
-  #if( ($os eq 'darwin') || ($os =~ m/.*bsd$/) ) {
-  #  return '-lvGcTh ' . join('', @ls_opts);
-  #}
+  if ($os eq 'darwin') {
+    return '-lvGcTh ' . join('', @ls_opts);
+  }
 
   return '-hlv --group-directories-first --color=always --time=ctime ' .
          '--time-style=+%s ' . join('', @ls_opts);
@@ -656,6 +682,8 @@ sub get_os {
 }
 
 
+
+1;
 __END__
 
 
@@ -709,7 +737,7 @@ different views and possiblity to ignore certain files amongst other things.
 
   Magnus Woldrich
   CPAN ID: WOLDRICH
-  magnus@trapd00r.se
+  m@japh.se
   http://japh.se
 
 =head1 CONTRIBUTORS
@@ -720,7 +748,7 @@ crshd added optional user:group display.
 
 =head1 COPYRIGHT
 
-Copyright 2010, 2011 the B<ls++> L</AUTHOR> and L</CONTRIBUTORS> as listed
+Copyright 2010, 2011, 2018- the B<ls++> L</AUTHOR> and L</CONTRIBUTORS> as listed
 above.
 
 =head1 LICENSE

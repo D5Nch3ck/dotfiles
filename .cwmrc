@@ -1,10 +1,9 @@
 borderwidth	1
-color 		activeborder		"#f0c674"
-color 		inactiveborder		"#282a2e"
-color 		font				"#fff300"
-#color 		selfont				"#dc322f"
-color 		menubg				"#1d1f21"
-color 		menufg				"#282a2e"
+color 		activeborder   "#f0c674"
+color 		inactiveborder "#282a2e"
+color 		font           "#fff300"
+color 		menubg         "#1d1f21"
+color 		menufg         "#282a2e"
 gap 		17 0 0 0
 moveamount	10
 
@@ -16,32 +15,31 @@ sticky		yes
 snapdist	4
 
 # Any entry here is show in application menu
-command dmenu		dmenu_run
-command tmux		"xterm -e tmux"
-command ircmailbt	"xterm -name ircmailbt -e tmux attach-session -d -t 0"
-command file		"xterm -name ranger -e ranger"
-command firefox		"firefox-esr -private --safe-mode"
-command iridium		"iridium --enable-pledge --enable-unveil --incognito"
-command dillo		"dillo"
-#command vimb		"tabbed -g 1000x600 -c vimb -e"
-command gimp		gimp
-command terminal	xterm
+command dmenu       dmenu_run
+command leafpad     leafpad
+command tmux        "urxvtc -e tmux"
+command ircmailbt   "urxvtc -name ircmailbt -e tmux attach-session -d -t 0"
+command file        "urxvtc -name ranger -e ranger"
+command iridium     "iridium --enable-pledge --enable-unveil --incognito --temp-profile --no-default-browser-check --no-first-run"
+command Chromium    "chrome --enable-pledge --enable-unveil --incognito --temp-profile --no-default-browser-check --no-first-run"
+command dillo       "sh -c 'dillo >/dev/null'"
+#command vimb       "tabbed -g 1000x600 -c vimb -e"
+command gimp        gimp
+command terminal    urxvtc
 
 # Autogroup definitions
-#autogroup	1 		"urxvt,URxvt"
-autogroup	1		"xterm,XTerm"
-#autogroup	2 		"Navigator,Firefox"
-autogroup	2 		"Firefox"
-autogroup   2		"Iridium"
-autogroup	2 		"Dillo"
-autogroup	2 		"Vimb"
-autogroup	3 		"ranger,XTerm"
-autogroup	4 		"gimp,Gimp"
-autogroup	4 		"mpv"
-autogroup	4 		"mplayer"
-autogroup	5 		"zathura"
-autogroup	5 		"xpdf"
-autogroup	6 		"ircmailbt,XTerm"
+autogroup	1	"Navigator,URxvt"
+autogroup	1	"xterm,XTerm"
+autogroup	2 	"Firefox"
+autogroup	2	"Iridium"
+autogroup       2       "Chromium"
+autogroup	2 	"Dillo"
+autogroup	3 	"ranger,URxvt"
+autogroup	4 	"gimp,Gimp"
+autogroup	4 	"mpv"
+autogroup	5 	"zathura"
+autogroup	5 	"xpdf"
+autogroup	6 	"ircmailbt,URxvt"
 
 # Ignore programs by that name by not drawing borders around them.
 ignore		conky
@@ -51,11 +49,11 @@ ignore		xclock
 ignore		xconsole
 
 # User bindings
-bind-key 	4-F1		"urxvt -e zsh"
-#bind-key 	4-F2		dmenu_run
-#bind-key 	4-F3		"xterm -e tmux"
-#bind-key 	4-F2        group-cycle
-#bind-key 	4-F3        group-rcycle
+bind-key 	4-F1		"xterm -e zsh"
+bind-key 	4-F5		"xterm -e ksh"
+#bind-key 	4-f3		"urxvtc -e tmux"
+#bind-key 	4-F2		group-cycle
+#bind-key 	4-F3		group-rcycle
 bind-key 	4-F2		window-delete
 bind-key 	4-F3		window-raise
 bind-key 	4-F4		window-lower
@@ -69,55 +67,55 @@ bind-key 	4S-Return	window-hide
 bind-key 	4S-c		window-delete
 
 # volume
-bind-key 	4-apostrophe "mixerctl -qn outputs.master=+5"
-bind-key 	4-semicolon	 "mixerctl -qn outputs.master=-5"
+bind-key 	4-apostrophe  "mixerctl -qn outputs.master=+5"
+bind-key 	4-semicolon   "mixerctl -qn outputs.master=-5"
 
 # Tmux, IrcMailBT
-bind-key 	4-t	"xterm -name ircmailbt -e tmux attach-session -d -t 0"
+bind-key 	4-t		"urxvtc -name ircmailbt -e tmux attach-session -d -t 0"
 
 # Cmus control
 bind-key 	4S-bracketleft	"cmus-remote -r"
 bind-key 	4S-bracketright	"cmus-remote -n"
-bind-key 	4S-slash	    "cmus-remote -u"
+bind-key 	4S-slash        "cmus-remote -u"
 
 # Key bindings
-bind-key 	4S-l		xlock
-bind-key 	4-r			restart
-bind-key 	4-Return	"xterm -geometry 80x19"
-bind-key 	4-s			"xterm -geometry 80x19"
-bind-key 	4S-s		"sh -c 'zzz;xlock'"
-bind-key 	4S-z		"sh -c 'ZZZ'"
-bind-key 	4S-t		"xterm -e tmux"
-bind-key 	4S-f		"xterm -name ranger -e ranger"
-bind-key 	4-f			"firefox-esr -private"
-bind-key	4-i			"iridium --enable-pledge --enable-unveil --incognito"
-bind-key 	4-d			"dillo"
-#bind-key 	4-v			"tabbed -g 1000x600 -c vimb -e"
-bind-key 	4-o			dmenu_run
+bind-key 	4S-l     xlock
+bind-key 	4-r      restart
+bind-key 	4-Return "urxvtc -e htop"
+bind-key 	4-s      "urxvtc -geometry 80x19"
+bind-key 	4S-s     "sh -c 'zzz;xlock'"
+bind-key 	4S-z     "sh -c 'ZZZ'"
+bind-key 	4S-t     "urxvtc -e tmux"
+bind-key 	4S-f     "urxvtc -name ranger -e ranger"
+bind-key	4-i      "iridium --enable-pledge --enable-unveil --incognito --temp-profile --no-default-browser-check --no-first-run"
+bind-key        4-c      "chrome --enable-pledge --enable-unveil --incognito --temp-profile --no-default-browser-check --no-first-run"
+bind-key 	4-d      "sh -c 'dillo >/dev/null'"
+#bind-key 	4-v      "tabbed -g 1000x600 -c vimb -e"
+bind-key 	4-o      dmenu_run
 
 # Tiling
-bind-key 	4S-h		window-htile
-bind-key 	4S-v		window-vtile
-bind-key 	4-1			group-only-1
-bind-key 	4-2			group-only-2
-bind-key 	4-3			group-only-3
-bind-key 	4-4			group-only-4
-bind-key 	4-5			group-only-5
-bind-key 	4-6			group-only-6
-bind-key 	4-7			group-only-7
-bind-key 	4-8			group-only-8
-bind-key 	4-9			group-only-9
-bind-key 	4S-1		window-movetogroup-1
-bind-key 	4S-2		window-movetogroup-2
-bind-key 	4S-3		window-movetogroup-3
-bind-key 	4S-4		window-movetogroup-4
-bind-key 	4S-5		window-movetogroup-5
-bind-key 	4S-6		window-movetogroup-6
-bind-key 	4S-7		window-movetogroup-7
-bind-key 	4S-8		window-movetogroup-8
-bind-key 	4S-9		window-movetogroup-9
-bind-key 	4-j			group-cycle
-bind-key 	4-k			group-rcycle
+bind-key 	4S-h	window-htile
+bind-key 	4S-v	window-vtile
+bind-key 	4-1	group-only-1
+bind-key 	4-2	group-only-2
+bind-key 	4-3	group-only-3
+bind-key 	4-4	group-only-4
+bind-key 	4-5	group-only-5
+bind-key 	4-6	group-only-6
+bind-key 	4-7	group-only-7
+bind-key 	4-8	group-only-8
+bind-key 	4-9	group-only-9
+bind-key 	4S-1	window-movetogroup-1
+bind-key 	4S-2	window-movetogroup-2
+bind-key 	4S-3	window-movetogroup-3
+bind-key 	4S-4	window-movetogroup-4
+bind-key 	4S-5	window-movetogroup-5
+bind-key 	4S-6	window-movetogroup-6
+bind-key 	4S-7	window-movetogroup-7
+bind-key 	4S-8	window-movetogroup-8
+bind-key 	4S-9	window-movetogroup-9
+bind-key 	4-j	group-cycle
+bind-key 	4-k	group-rcycle
 
 # Resize
 bind-key 	C-Up		window-resize-up

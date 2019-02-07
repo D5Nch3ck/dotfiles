@@ -1,22 +1,3 @@
 ! $OpenBSD: dot.Xdefaults,v 1.3 2014/07/10 10:22:59 jasper Exp $
 XTerm*loginShell:true
-XTerm*locale:utf-8
-XTerm*Background: #1D1F21
-XTerm*Foreground: white
-XTerm*ScrollBar: false
-XTerm*faceName:	Lucida Sans Bold
-XTerm*faceSize: 12
-XTerm*selectToClipboard: true
-!XTerm*cursorColor:	yellow
-XTerm*cursorBlink:	false
-
-XClock*update: 		1
-XClock*analog: 		false
-XClock*twentyfour:	false
-XClock*foreground: 	yellow
-XClock*background:	black
-XConsole*foreground:	yellow
-XConsole*background:	black
-
-! URxvt Options
-URxvt.perl-lib: /usr/local/lib/urxvt/perl
+Xterm*faceSize:12

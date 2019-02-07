@@ -1,0 +1,42 @@
+#!/bin/sh
+if [[ ! -d /mnt/usbdisk ]];then
+        mkdir -p /mnt/usbdisk
+fi
+
+/sbin/mount | grep "mnt/usbdisk">/dev/null
+if [[ "$?" -eq 0 ]]; then
+    echo "mount /mnt/usbdisk"
+    exit 1
+fi
+
+for i in $(sysctl -n hw.disknames|sed  's/,/ /g')
+do
+  echo $i
+done >/tmp/disks
+
+usbstick="$(dmesg|grep 'Cruzer Blade'|tail -1|awk '{print $1}')"
+controll="$(cat /tmp/disks |grep 'ef3399b9b58d2161' | sed 's/:/ /g'|cut -d' ' -f1)"
+sdcard="$(dmesg|grep 'R5U880'|tail -1|awk '{print $1}')"
+control="$(cat /tmp/disks |grep '5f57563e496a5b23' | sed 's/:/ /g'|cut -d' ' -f1)"
+
+if [[ ${sdcard} != ${control} ]];then
+      echo "SDCARD: not found!"
+      exit 123
+fi
+if [[ ${usbstick} != ${controll} ]];then
+      echo "USBSTICK: not found!"
+      exit 123
+fi
+bio_disk="$(bioctl softraid0 | grep '8002894336' | awk '{print $5}'|head -1)"
+if [ "${#bio_disk}" == "3" ];then
+   bioctl -d $bio_disk
+fi
+mount_disk="`bioctl -c C -r 999999999 -l /dev/${usbstick}a -k /dev/${sdcard}e softraid0|grep 'CRYPTO'|awk '{print $6}'`"
+sleep 1
+mount /dev/${mount_disk}a /mnt/usbdisk
+if [[ "$?" -eq 0 ]]; then
+   echo "Mount: /mnt ${mount_disk}/usbdisk"
+else
+   echo "Err: mount /mnt/usbdisk\nFix command: # umount /mnt/usbdisk"
+   exit 1
+fi

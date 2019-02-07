@@ -1,9 +1,18 @@
+!XTerm*termName: xterm-256color
+Xterm*selectToClipboard: True
+XTerm*metaSendsEscape: True
 XTerm*eightBitInput:false
 XTerm*locale:utf-8
 XTerm*Background: #1D1F21
 XTerm*Foreground: white
 XTerm*ScrollBar: false
-XTerm*faceName: Mensch
+
+!xterm*faceName: spleen:pixelsize=8:antialias=false
+!xterm*faceName: spleen:pixelsize=16:antialias=false
+xterm*faceName: spleen:pixelsize=24:antialias=false
+!xterm*faceName: spleen:pixelsize=32:antialias=false
+!xterm*faceName: spleen:pixelsize=64:antialias=false
+
 XTerm*faceSize: 12
 XTerm*selectToClipboard: true
 !XTerm*cursorColor:     yellow
@@ -11,13 +20,28 @@ XTerm*cursorBlink:      false
 XTerm*vt100.backarrowKey: false
 XTerm*ttyModes: erase ^?
 
+! clicking a line selects only from the current word forward
+XTerm*cutToBeginningOfLine   : false
+! and don't include a trailing newline in the selection!
+XTerm*cutNewline             : false
+! some black magic to change what characters XTerm considers "word delimiters"
+XTerm*charClass              : 33:48,36-47:48,58-59:48,61:48,63-64:48,95:48,126:48
+! select word on two clicks
+XTerm*on2Clicks              : word
+! select whole line on three clicks
+XTerm*on3Clicks              : line
+
+! shift + left click to open selection in web browser
+!XTerm*VT100*Translations     : #override Shift : exec-formatted("chrome --enable-unveil '%t'", PRIMARY)
+
 !Increase or decrease font size in xterm using keyboard shortcut
 !keyboard shortcut = ^C + > | ^C - <
 XTerm.vt100.translations: #override \n\
   Ctrl <Key> minus: smaller-vt-font() \n\
   Ctrl <Key> plus: larger-vt-font() \n\
   Alt  <Key>C: copy-selection(CLIPBOARD) \n\
-  Alt  <Key>V: insert-selection(CLIPBOARD)
+  Alt  <Key>P: insert-selection(CLIPBOARD) \n\
+  Alt  <Key>V: select-end(CLIPBOARD)
 
 XClock*update:          1
 XClock*analog:          false
@@ -31,62 +55,67 @@ XConsole*background:    black
 Xcursor.theme: Neutral
 Xcursor.size: 14
 ! Colour Scheme
-#include "/home/<username>/.config/termcolours/hybrid"
+#include "/home/test/.config/termcolours/hybrid"
 
 ! URxvt Options
+
+! Behavior
+URxvt.scrollTtyOutput: true
+URxvt.scrollTTyKeypress: false
+
 URxvt.depth: 32
 URxvt.scrollstyle: rxvt
 URxvt.scrollBar: off
-URxvt.urgentOnBell: true
-URxvt.visualBell: true
+URxvt.buffered: false
+URxvt.skipBuiltinGlyphs: false
+URxvt.urgentOnBell: false
+URxvt.visualBell: false
 !URxvt.cursorColor: #00FF00
 URxvt.cursorBlink: false
 URxvt.cursorUnderline: false
 URxvt.termName: rxvt-256color
-!URxvt.bell-command: cat /home/<username>/.mutt/beep.wav > /dev/audio
-!URxvt.print-pipe: cat > $(mktemp /tmp/uRxvt.XXXXX)
 ! bold, italic, underline
 URxvt.colorBD: #B5BD68
 URxvt.colorIT: #B294BB
 URxvt.colorUL: #81A2BE
 !URxvt.background: black
 !URxvt.foreground: white
-!URxvt.xftAntialias: true
 URxvt.transparent: false
 URxvt.tintColor: white
 URxvt.shading: 10
 
 ! font
-URxvt.font: xft:Inconsolata\ for\ Powerline:size=17, xft:DejaVu\ Sans\ Mono:size=16
-URxvt.boldFont:  xft:Inconsolata\ for\ Powerline:size=17, xft:DejaVu\ Sans\ Mono:size=16
-URxvt.italicFont: xft:Inconsolata\ for\ Powerline:size=17, xft:DejaVu\ Sans\ Mono:size=16
-URxvt.boldItalicFont: xft:Inconsolata\ for\ Powerline:size=17, xft:DejaVu\ Sans\ Mono:size=16
+URxvt.font: xft:Spleen:size=16, xft:DejaVu\ Sans\ Mono:size=13
+URxvt.boldFont:  xft:Spleen:size=16, xft:DejaVu\ Sans\ Mono:size=13
+URxvt.italicFont: xft:Spleen:size=16, xft:DejaVu\ Sans\ Mono:size=13
+URxvt.boldItalicFont: xft:Spleen:size=16, xft:DejaVu\ Sans\ Mono:size=13
 URxvt.letterSpace: -1
 
 !Font size
 URxvt.keysym.C-M-Up:     font-size:increase
 URxvt.keysym.C-M-Down:   font-size:decrease
-!URxvt.keysym.C-S-Up:   font-size:incglobal
-!URxvt.keysym.C-S-Down: font-size:decglobal
 
 ! __NOTE__ This depends upon you running my fork
-URxvt.keysym.M-S-p: command:\033]750;0\007
+!URxvt.keysym.M-S-p: command:\033]750;0\007
 ! extensions
-URxvt.perl-ext-common: default,clipboard,keyboard-select,url-select,font-size
-!,bell-command
+URxvt.perl-ext-common: default,clipboard,keyboard-select,font-size
+!,bell-command,url-select
 
 ! clipboard
 URxvt.keysym.M-c: perl:clipboard:copy
 URxvt.keysym.M-v: perl:clipboard:paste
 URxvt.keysym.M-C-v: perl:clipboard:paste_escaped
-URxvt.clipboard.copycmd:  xsel -ib -l /tmp/xsel.log
-URxvt.clipboard.pastecmd: xsel -ob -l /tmp/xsel.log
+!URxvt.clipboard.copycmd:  xsel -ib -l /tmp/xsel.log
+!URxvt.clipboard.pastecmd: xsel -ob -l /tmp/xsel.log
+URxvt.clipboard.copycmd: xclip -i -selection clipboard
+URxvt.clipboard.pastecmd: xclip -o -selection clipboard
+
 ! keyboard-select
 URxvt.keysym.M-Escape: perl:keyboard-select:activate
 URxvt.keysym.M-s: perl:keyboard-select:search
 ! url-select
-URxvt.keysym.M-u: perl:url-select:select_next
-URxvt.url-select.autocopy: true
-URxvt.url-select.button: 1
-URxvt.url-select.launcher: /usr/local/bin/iridium --enable-unveil --enable-pledge --incognito
-URxvt.url-select.underline: false
+!URxvt.keysym.M-u: perl:url-select:select_next
+!URxvt.url-select.autocopy: true
+!URxvt.url-select.button: 1
+!URxvt.url-select.launcher: /usr/local/bin/dillo
+!URxvt.url-select.underline: false
