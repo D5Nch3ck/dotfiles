@@ -148,7 +148,6 @@ libdiscid--
 libdvdcss--
 libdvdnav--
 libdvdread--
-libelf--
 liberation-fonts--
 libevent--
 libexecinfo--
@@ -225,6 +224,7 @@ mutt--gpgme-sasl
 nano--
 nasm--
 neofetch--
+netpbm--
 nghttp2--
 nmap--
 noto-emoji--
@@ -342,6 +342,7 @@ tesseract-eng--
 testdisk--
 texlive_base--
 texlive_mktexlsr--
+texlive_synctex--
 texlive_texmf-buildset--
 tiff--
 tk--%8.5
