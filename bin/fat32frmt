@@ -1,0 +1,58 @@
+#!/bin/sh
+
+# Colors vars
+RED="\033[0;031m"
+BLU="\033[1;34m"
+YLW="\033[1;33m"
+RST="\033[1;0m"
+GRN="\033[32m"
+GRY="\033[37m"
+
+USBSTICK=$1 #sd2
+
+usage() {
+    echo "${BLU}Usage:${YLW} doas ${GRN}$0 [usb-disk]${RST}"
+    exit 2
+}
+
+if [ $(id -u) -ne 0 ]; then
+    echo "${RED}This script must be run as root!${RST}"
+    usage
+    exit 1
+fi
+
+if [[ -z "${USBSTICK}" ]]; then
+    usage
+fi
+
+#sysctl -n hw.disknames | sed 's/:[^,]*//g;s/,//'
+
+echo "${YLW}MBR Write ${GRN}${USBSTICK}${RST}"
+fdisk -iy ${USBSTICK}>/dev/null
+
+<<COMING_SOON
+echo "\
+0B FAT32
+07 NTFS
+85 Linux ext.
+"
+echo "Choose from the following Partition id values: "
+read choose_file
+echo "${YLW}Editing ${GRN}${USBSTICK}...${RST}"
+echo "z\nw\nq"|disklabel -E ${USBSTICK} >/dev/null
+echo "e 3\n${choose_file}\n\n\n\nw\nq\n" | fdisk -e ${USBSTICK} >/dev/null
+COMING_SOON
+
+echo "${YLW}Editing ${GRN}${USBSTICK}...${RST}"
+echo "e 3\n0B\n\n\n\nw\nq\n" | fdisk -e ${USBSTICK} >/dev/null
+
+/sbin/mount | grep "${USBSTICK}">/dev/null
+if [[ "$?" != 0 ]]; then
+    echo "${YLW}Creating FAT32... ${GRN}${USBSTICK}i${RST}"
+    /sbin/newfs_msdos ${USBSTICK}i >/dev/null
+else
+    echo "${RED}Err: umount ${YLW}${USBSTICK}${RST}"
+    exit 1
+fi
+
+# vim: set ts=4 sw=4 tw=0 ff=unix ft=sh et :

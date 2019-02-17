@@ -1,11 +1,3 @@
-#
-# Executes commands at login pre-zshrc.
-#
-# Authors:
-#   Sorin Ionescu <sorin.ionescu@gmail.com>
-#
-
-#
 # Editors
 #
 export GREP_COLOR='30;43'
@@ -15,14 +7,12 @@ export PAGER='less'
 export TERM="rxvt-256color"
 [ -n "$TMUX" ] && export TERM=tmux-256color
 
-#
 # Language
 #
 if [[ -z "$LANG" ]]; then
   export LANG='en_US.UTF-8'
 fi
 
-#
 # Paths
 #
 
@@ -39,7 +29,6 @@ path=(
   $path
 )
 
-#
 # Less
 #
 
@@ -54,7 +43,6 @@ if (( $#commands[(i)lesspipe(|.sh)] )); then
   export LESSOPEN="| /usr/bin/env $commands[(i)lesspipe(|.sh)] %s 2>&-"
 fi
 
-#
 # Temporary Files
 #
 

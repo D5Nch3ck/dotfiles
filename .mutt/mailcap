@@ -1,5 +1,5 @@
 application/octet-stream ; echo %s "can be anything..." ; copiousoutput
-text/html ; /usr/local/bin/xombrero %s ; copiousoutput
+text/html ; /usr/local/bin/dillo %s ; copiousoutput
 application/pdf ; /usr/local/bin/xpdf %s ; copiousoutput
 image/* ; /usr/local/bin/feh %s ; copiousoutput
 audio/* ; /usr/local/bin/mpv %s ; copiousoutput

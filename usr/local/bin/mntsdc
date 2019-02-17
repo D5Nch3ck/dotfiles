@@ -12,12 +12,12 @@ fi
 for i in $(sysctl -n hw.disknames|sed  's/,/ /g')
 do
   echo $i
-done >/tmp/disks
+done >/tmp/test/disks
 
 systemdisk="$(dmesg|grep 'WDC WD1600BEVT-2'|tail -1|awk '{print $1}')"
-controll="$(cat /tmp/disks |grep '3f309623633c2331e' | sed 's/:/ /g'|cut -d' ' -f1)"
-sdcard="$(dmesg|grep 'R5U880'|tail -1|awk '{print $1}')"
-control="$(cat /tmp/disks |grep '5f57563e496a5b23' | sed 's/:/ /g'|cut -d' ' -f1)"
+controll="$(cat /tmp/test/disks |grep '84c1623633c23bca' | sed 's/:/ /g'|cut -d' ' -f1)"
+sdcard="$(dmesg|grep 'R5U880FlashMedia'|tail -1|awk '{print $1}')"
+control="$(cat /tmp/test/disks |grep '8f47563e496a5b2d' | sed 's/:/ /g'|cut -d' ' -f1)"
 
 if [[ ${sdcard} != ${control} ]];then
       echo "SDCARD: not found!"

@@ -1,10 +1,12 @@
 #!/usr/bin/perl
+# nowadays dmesg is already colored so this is kinda obsolete. :)
 
 use strict;
 use Term::ExtendedColor qw(fg bg);
 
 use feature 'say';
 
+#open(my $fh, '-|', 'dmesg --color=always') or die("Cant popen dmesg $!\n");
 open(my $fh, '-|', 'dmesg') or die("Cant popen dmesg $!\n");
 chomp(my @data = <$fh>);
 close($fh);
@@ -12,7 +14,14 @@ close($fh);
 # Disable autoreset
 #Term::ExtendedColor::autoreset(0);
 
+
 for(@data) {
+#  $_ =~ s/^\[\s*([0-9]+\.[0-9]+)\]/fg('bold', '[') . fg('green14', $1) . fg('bold', ']')/egi;
+  $_ =~ s/^\[\s*([0-9]+\.[0-9]+)\]/\b/gi;
+#  $_ =~ s/^(.+): /sprintf("%.15s ", sprintf("%15s", $1))/egi;
+
+  $_ =~ s/ ([\w\s.]+): /' ' . fg('orange1', $1) .': '/egi;
+
   $_ =~ s/(usb)/fg('blue12', bg('bold', $1))/egi;
   $_ =~ s/(disconnect)/bg('magenta16', fg('bold', $1))/egi;
   $_ =~ s/(high speed)/fg('green20', fg('bold', $1))/egi;
@@ -79,8 +88,14 @@ for(@data) {
     say fg('bold', $1) . ": $2";
   }
 
+  elsif($_ =~ /(.+)(disabled?|danger|disabling|timeout)(.+)/i) {
+    say fg('lightpink3', $1), fg('bold', fg('red1', $2)), fg('lightpink3', $3);
+  }
+  elsif($_ =~ /(.+)?(enabled|enabling|loaded|authenticated?)(.+)/) {
+    say $1 . fg('green26', fg('bold', ($2))) . $3;
+  }
   else {
-    say fg('green12', $_);
+    say fg('grey18', $_);
   }
 }
 
@@ -100,12 +115,12 @@ colored_dmesg demonstrates the color functions exported by L<Term::ExtendedColor
 
   Magnus Woldrich
   CPAN ID: WOLDRICH
-  magnus@trapd00r.se
+  m@japh.se
   http://japh.se
 
 =head1 REPORTING BUGS
 
-Report bugs to trapd00r@trapd00r.se
+Report bugs to m@japh.se
 
 =head1 COPYRIGHT
 

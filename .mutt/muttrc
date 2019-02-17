@@ -1,6 +1,12 @@
 # ~/.mutt/muttrc
 
 # settings
+  set sidebar_visible   = yes
+#  set sidebar_width     = 26
+  set sidebar_format    = "%B %> %S "
+  set mail_check_stats
+  set status_chars      = " *%A"
+  set status_format     = "----[ Folder: %f ]----[%r%m messages%?n? (%n new)?%?d? (%d to delete)?%?t? (%t tagged)? ]----%>--%?p?( %p postponed )?----"
   set alias_file        = ~/.mutt/aliases
   set alias_format      = "%4n %t %-20a %r"
   set askcc
@@ -12,9 +18,11 @@
   set editor            = "vim +:silent+?^$"
   set fast_reply
   set folder            = ~/.mutt/maildir
+  set folder_format     = "%2C %t %N %8s %f"
   set forward_format    = "Fwd: %s"
   set forward_quote
   set include
+#  set index_format      = "[%Z]  %D  %-20.20F %s"
   set index_format      = "%3C %Z %[!%m/%d] %-17.17F %s"
   set ispell            = "aspell -e -c"
   set mail_check        = 0
@@ -37,7 +45,6 @@ unset markers
   set sort              = threads
   set sort_aux          = reverse-last-date-received
 unset sort_re
-#  set spoolfile         = "+gmail/inbox"
   set spoolfile		= "+disroot/inbox"
   set thorough_search
   set thread_received
@@ -51,10 +58,9 @@ unset wait_key
 alternative_order text/plain text/enriched text/html
 
 # override with account specific folder-hooks
-folder-hook disroot/* source ~/.mutt/accounts/disroot
-folder-hook riseup/* source ~/.mutt/accounts/riseup
+folder-hook  disroot/* source ~/.mutt/accounts/disroot
 # collapse subscribed mailing threads
-folder-hook disroot/arch_* "exec collapse-all"
+folder-hook disroot/openbsd_* "exec collapse-all"
 
 # headers to show
 ignore *
@@ -62,7 +68,7 @@ unignore from: to: cc: date: subject:
 hdr_order from: to: cc: date: subject:
 
 # mailing lists
-subscribe arch-announce arch-dev-public arch-general
+subscribe openbsd-announce openbsd-mics openbsd-ports openbsd-tech
 
 # vim-like key bindings
 bind   index         <Space>   collapse-thread
@@ -78,12 +84,17 @@ bind   index,pager   \#        noop
 bind   index,pager   \&        noop
 bind   index,pager   R         group-reply
 
+# Sidebar navigation
+bind index,pager <down> sidebar-next
+bind index,pager <up> sidebar-prev
+bind index,pager <right> sidebar-open
+
 # shortcut macros
-macro index ,d  "<change-folder> =disroot/inbox<enter>"         "go to Disroot Inbox"
-macro index ,r  "<change-folder> =riseup/inbox<enter>"          "go to Riseup Inbox"
-#macro index ,aa "<change-folder> =riseup/arch_announce<enter>" "go to Arch Announce"
-#macro index ,ad "<change-folder> =riseup/arch_dev<enter>"      "go to Arch Dev"
-#macro index ,ag "<change-folder> =riseup/arch_general<enter>"  "go to Arch General"
+macro index ,d   "<change-folder> =disroot/inbox<enter>"	  	"go to Disroot Inbox"
+macro index ,oa  "<change-folder> =disroot/openbsd_announce<enter>"	"go to OpenBSD Announce"
+macro index ,om  "<change-folder> =disroot/openbsd_mics<enter>" 	"go to OpenBSD Mics"
+macro index ,op  "<change-folder> =disroot/openbsd_ports<enter>"      	"go to OpenBSD Ports"
+macro index ,ot  "<change-folder> =disroot/openbsd_tech<enter>"  	"go to OpenBSD Tech"
 
 # source files
 source $alias_file

@@ -1,8 +1,19 @@
 #!/bin/sh
+esc=""
+red="${esc}[31m"
+blue="${esc}[34m"
+reset="${esc}[0m"
+
+progname=${0##*/}
+set -A bsds 'bsd' 'bsd.mp' 'bsd.rd'
+set -A sets 'comp' 'game' 'man' 'base'
+set -A xsets 'xbase' 'xfont' 'xserv' 'xshare'
+set -A files 'SHA256.sig' 'BUILDINFO' 'INSTALL.amd64'
 
 setver=$(uname -r | tr -d \.)
-servers=$(echo "rsync://mirror.leaseweb.com/openbsd
-rsync://mirror.internode.on.net/openbsd
+https_server="https://ftp.eu.openbsd.org/pub/OpenBSD/snapshots/`arch -s`"
+
+servers=$(echo "rsync://mirror.internode.on.net/openbsd
 rsync://mirror.aarnet.edu.au/openbsd
 rsync://ftp2.eu.openbsd.org/OpenBSD
 rsync://openbsd.c3sl.ufpr.br/openbsd
@@ -40,16 +51,53 @@ rsync://anorien.csc.warwick.ac.uk/OpenBSD
 rsync://mirror.bytemark.co.uk/OpenBSD
 rsync://mirror.exonetric.net/OpenBSD
 rsync://ftp3.usa.openbsd.org/ftp
-rsync://mirrors.syringanetworks.net/OpenBSD
 rsync://openbsd.mirror.constant.com/openbsd
 rsync://ftp4.usa.openbsd.org/ftp
 rsync://ftp5.usa.openbsd.org/ftp
 rsync://mirror.esc7.net/openbsd" | sort -R | head -1)
 
-rsync -avz --del --progress -f '. /home/user-name/Downloads/obsd-sets/filter.txt' "$servers"/snapshots/`arch -s`/ \
-/home/user-name/Downloads/obsd-sets/upgrade && 
+if [ -z "$1" ];then
+	echo "Usage:\v./$progname [-r|-h]" ;exit 123
+fi
 
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+    -r|rsync)
+       rsync -avz --del --progress -f '. /home/test/code/obsd-sets/filter.txt' \
+		"$servers"/snapshots/`arch -s`/ /home/test/code/obsd-sets/upgrade || \
+		echo "${red}Failed!${reset}"
 
-cd /home/user-name/Downloads/obsd-sets/upgrade ;
-signify -V -e -p /etc/signify/openbsd-${setver}-base.pub -x  /home/user-name/Downloads/obsd-sets/upgrade/SHA256.sig -m - |
-sha256 -C - $(ls |egrep -iv 'index|SHA256|install|oot|build|floppy|cd') ; cd -
+	cd -- /home/test/code/obsd-sets/upgrade
+	signify -Vep /etc/signify/openbsd-${setver}-base.pub -x  \
+		/home/test/code/obsd-sets/upgrade/SHA256.sig -m - |
+		sha256 -C - $(ls | egrep -iv 'index|SHA256|install|oot|build|floppy|cd') || \
+		echo "${red}Invalid signature found! They are after you!${reset}" ;exit 2;;
+    -h|https)
+        cd -- /home/test/code/obsd-sets/upgrade
+        echo "${blue}Fetching xsets${reset}"
+        for set in "${xsets[@]}"; do
+        ftp -V "${https_server}/${set}${setver}.tgz" || \
+              echo "${red}Failed!${reset}";done
+
+        echo "${blue}Fetching sets${reset}"
+        for set in "${sets[@]}"; do
+        ftp -V "${https_server}/${set}${setver}.tgz" || \
+              echo "${red}Failed!${reset}";done
+
+        echo "${blue}Fetching bsds${reset}"
+        for set in "${bsds[@]}"; do
+        ftp -V "${https_server}/${set}" || \
+              echo "${red}Failed!${reset}";done
+
+        echo "${blue}Fetching files${reset}"
+        for set in "${files[@]}"; do
+        ftp "${https_server}/${set}" || \
+              echo "${red}Failed!${reset}";done
+
+        signify -Vep /etc/signify/openbsd-${setver}-base.pub -x  \
+                /home/test/code/obsd-sets/upgrade/SHA256.sig -m - |
+                sha256 -C - $(ls | egrep -iv 'index|SHA256|install|oot|build|floppy|cd') || \
+	    echo "${red}Invalid signature found! They are after you!${reset}"; exit 1;;
+	*) echo "Usage:\v./$progname [-r|-h]" ; exit 8;;
+    esac
+done

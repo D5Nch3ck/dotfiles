@@ -1,0 +1,33 @@
+#!/bin/sh
+
+progname=${0##*/}
+
+function usage {
+cat <<USAGE
+Usage:
+    ${progname} [-e|--echo] [<strings>] [<encrypt-filename>]
+    ${progname} [-c|--cat] [<file>]
+USAGE
+}
+
+if [ -z $1 ];then
+	usage
+	exit
+fi
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -e|--echo)
+            echo "$2" | gpg2 --encrypt --recipient "attila" -o $3.gpg
+            exit 0;;
+        -c|--cat)
+	    cat $2 | gpg2 --encrypt --recipient "attila" -o $2.gpg
+            exit 0;;
+        -h|--help)
+            usage
+            exit 1;;
+        *)
+            usage
+            exit 1;;
+    esac
+done

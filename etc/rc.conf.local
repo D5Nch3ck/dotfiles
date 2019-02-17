@@ -1,7 +1,4 @@
-apmd_flags="-A"
-smtpd_flags=NO
-sshd_flags=NO 
-syslogd_flags=NO
-xenodm_flags=
-unbound_flags="-c /var/unbound/etc/myunbound.conf"
 pkg_scripts=dnscrypt_proxy
+sshd_flags=NO
+unbound_flags=-c /var/unbound/etc/myunbound.conf
+xenodm_flags=

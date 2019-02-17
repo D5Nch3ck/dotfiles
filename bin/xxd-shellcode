@@ -1,0 +1,8 @@
+#!/bin/sh
+progname=${0##*/}
+if [ -z "$1" ];then
+	echo "Description: File to shellcode converter"
+        echo "Usage:\v./$progname [file]"
+        exit 1 
+fi
+xxd -p $1 | tr -d '\n' | sed 's@..@&\\x@g;s@^@\\x@g;s@..$@@'

@@ -12,12 +12,12 @@ fi
 for i in $(sysctl -n hw.disknames|sed  's/,/ /g')
 do
   echo $i
-done >/tmp/disks
+done >/tmp/test/disks
 
-usbstick="$(dmesg|grep 'Cruzer Blade'|tail -1|awk '{print $1}')"
-controll="$(cat /tmp/disks |grep 'ef3399b9b58d2161' | sed 's/:/ /g'|cut -d' ' -f1)"
-sdcard="$(dmesg|grep 'R5U880'|tail -1|awk '{print $1}')"
-control="$(cat /tmp/disks |grep '5f57563e496a5b23' | sed 's/:/ /g'|cut -d' ' -f1)"
+usbstick="$(dmesg|grep 'Cruzer Blade, 1.26'|tail -1|awk '{print $1}')"
+controll="$(cat /tmp/test/disks |grep 'bc7379b9b58d2191' | sed 's/:/ /g'|cut -d' ' -f1)"
+sdcard="$(dmesg|grep 'R5U880FlashMedia'|tail -1|awk '{print $1}')"
+control="$(cat /tmp/test/disks |grep '8f47563e496a5b2d' | sed 's/:/ /g'|cut -d' ' -f1)"
 
 if [[ ${sdcard} != ${control} ]];then
       echo "SDCARD: not found!"

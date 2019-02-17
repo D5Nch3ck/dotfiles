@@ -1,0 +1,7 @@
+#!/bin/sh
+server="https://ftp.eu.openbsd.org/pub/OpenBSD/snapshots/"
+ports_file="ports.tar.gz"
+
+cd -- /tmp
+ftp -V "${server}${ports_file}"
+tar -zxvf $ports_file -C /usr

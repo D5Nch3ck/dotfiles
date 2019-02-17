@@ -77,7 +77,7 @@ require_nofilter = true
 
 
 ## Always use TCP to connect to upstream servers.
-## This can be can be useful if you need to route everything through Tor.
+## This can be useful if you need to route everything through Tor.
 ## Otherwise, leave this to `false`, as it doesn't improve security
 ## (dnscrypt-proxy will always encrypt everything even using UDP), and can
 ## only increase latency.
@@ -85,12 +85,17 @@ require_nofilter = true
 force_tcp = false
 
 
-## HTTP / SOCKS proxy
+## SOCKS proxy
 ## Uncomment the following line to route all TCP connections to a local Tor node
 ## Tor doesn't support UDP, so set `force_tcp` to `true` as well.
 
 # proxy = "socks5://127.0.0.1:9050"
 
+
+## HTTP/HTTPS proxy
+## Only for DoH servers
+
+# http_proxy = "http://127.0.0.1:8888"
 
 
 ## How long a DNS query will wait for a response, in milliseconds
@@ -185,7 +190,7 @@ ignore_system_dns = false
 ## connectivity is not guaranteed to be immediately available.
 ## Use 0 to disable.
 
-netprobe_timeout = 30
+netprobe_timeout = 60
 
 
 ## Offline mode - Do not use any remote encrypted servers.
@@ -486,6 +491,15 @@ cache_neg_max_ttl = 600
   minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3'
   refresh_delay = 72
   prefix = ''
+
+  ## Quad9 over DNSCrypt - https://quad9.net/
+
+  # [sources.quad9-resolvers]
+  # urls = ["https://www.quad9.net/quad9-resolvers.md"]
+  # minisign_key = "RWQBphd2+f6eiAqBsvDZEBXBGHQBJfeG6G+wJPPKxCZMoEQYpmoysKUN"
+  # cache_file = "quad9-resolvers.md"
+  # refresh_delay = 72
+  # prefix = "quad9-"
 
   ## Another example source, with resolvers censoring some websites not appropriate for children
   ## This is a subset of the `public-resolvers` list, so enabling both is useless

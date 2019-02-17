@@ -43,8 +43,10 @@ def exclude(excludes):
 
     return inner
  
-def disroot():
-    return check_output("gpg2 -qd ~/.pass-store/disroot.gpg", shell=True).strip()
-def riseup():
-    return check_output("gpg2 -qd ~/.pass-store/riseup.gpg", shell=True).strip()
+#def disroot():
+#    return check_output("gpg2 -qd ~/.pass-store/disroot.gpg", shell=True).strip()
+def disroot2():
+    return check_output("gpg2 -qd ~/.pass-store/disroot2.gpg", shell=True).strip()
+#def riseup():
+#    return check_output("gpg2 -qd ~/.pass-store/riseup/*******.gpg", shell=True).strip()
 

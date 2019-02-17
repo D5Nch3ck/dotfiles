@@ -1,2 +1,33 @@
 #!/bin/sh
+xrandr --output default --dpi 96
+xset fp+ /usr/local/share/fonts/terminus
 xsetroot -solid black
+
+# show OpenBSDPuffy
+#/usr/local/bin/feh -B black -g 192x192+564+144 -. -Z /etc/X11/xenodm/pixmaps/OpenBSDPuffy.png &
+
+(
+while true; do
+  xmessage -geometry +500-32 \
+    -buttons "[ Sleep ]":20,"[ Restart ]":21,"[ Shutdown ]":22 ""
+  ACTION=$?
+  echo "Xmessage said: $ACTION"
+  if   [ $ACTION -eq 20 ]; then /usr/sbin/zzz;
+  elif [ $ACTION -eq 21 ]; then
+    xsetroot -cursor_name watch
+    /sbin/shutdown -r now
+  elif [ $ACTION -eq 22 ]; then
+    xsetroot -cursor_name watch
+    /sbin/shutdown -p now
+  else echo "Something bad happened to Xmessage.";
+  fi
+  # stop looping if xclock died (hopefully killed by GiveConsole)
+  if [ -z "$(pgrep -U root xclock)" ]; then break; fi
+done
+) &
+
+MODEL=$(sysctl -n hw.version)
+OS_NAME=$(uname -n)
+OS_INFO=$(uname -smr)
+xclock -geometry -0+0 \
+  -strftime "$MODEL > $OS_NAME ($OS_INFO) | %a. %d %b. %Y  %H:%M " &

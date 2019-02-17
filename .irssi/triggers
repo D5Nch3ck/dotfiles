@@ -1,3 +1,3 @@
 #Triggers file version 1.0+
--publics -nocase -regexp 'D5N_ch3ck_?' -command 'exec - echo -e  "$N \\| $Z" > ~/.logs/irssi_pipe' 
--privmsgs -command 'exec - echo -e "$N \\| $Z" > ~/.logs/irssi_pipe' 
+-publics -nocase -regexp 'D5N_ch3ck_?' -command 'exec - echo -e  "$N \| `date "+%H:%M"`" > ~/.irssi/irssi_pipe' 
+-privmsgs -command 'exec - echo -e "$N \| `date "+%H:%M"`" > ~/.irssi/irssi_pipe' 

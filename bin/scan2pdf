@@ -1,9 +1,10 @@
 #!/bin/sh
 # Scan an a4 page, compress the image, convert it to pdf
 # Required packages: sane, libtiff
+progname=${0##*/}
 
 if [[ -z $1 || ${1: -4} != ".pdf" ]]; then
-    echo "Usage: ./scan2pdf filename.pdf"
+    echo "Usage: ./progname filename.pdf"
     exit 1
 fi
 

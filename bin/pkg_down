@@ -1,0 +1,150 @@
+#!/bin/sh
+
+# Colors vars
+RED="\033[0;031m"
+BLU="\033[1;34m"
+YLW="\033[1;33m"
+RST="\033[1;0m"
+GRN="\033[32m"
+GRY="\033[37m"
+
+[ ! -d "$TMPDIR" ] && (export TMPDIR="/tmp/$LOGNAME" && mkdir -p -m 700 "$TMPDIR")
+SUDO=doas
+PKG_PATH=$TMPDIR
+PKG_ADD=/usr/sbin/pkg_add
+pkglist="$HOME/.pkg_find/ftp.eu.openbsd.org_pub_OpenBSD_snapshots_packages_`arch -s`"
+setver=$(uname -r | tr -d \.)
+
+cd -- $TMPDIR
+
+sha_diff() {
+servers=$( echo "https://cdn.openbsd.org/pub/OpenBSD/
+https://cloudflare.cdn.openbsd.org/pub/OpenBSD/
+https://fastly.cdn.openbsd.org/pub/OpenBSD/
+https://mirror.vdms.io/pub/OpenBSD/
+https://mirror.leaseweb.com/pub/OpenBSD/
+https://mirror.aarnet.edu.au/pub/OpenBSD/
+https://ftp2.eu.openbsd.org/pub/OpenBSD/
+https://openbsd.c3sl.ufpr.br/pub/OpenBSD/
+https://openbsd.ipacct.com/pub/OpenBSD/
+https://ftp.OpenBSD.org/pub/OpenBSD/
+https://openbsd.cs.toronto.edu/pub/OpenBSD/
+https://mirror.csclub.uwaterloo.ca/pub/OpenBSD/
+https://openbsd.mirror.netelligent.ca/pub/OpenBSD/
+https://mirrors.ucr.ac.cr/pub/OpenBSD/
+https://mirrors.dotsrc.org/pub/OpenBSD/
+https://mirror.one.com/pub/OpenBSD/
+https://ftp.eenet.ee/pub/OpenBSD/
+https://ftp.fr.openbsd.org/pub/OpenBSD/
+https://ftp.spline.de/pub/OpenBSD/
+https://mirror.hs-esslingen.de/pub/OpenBSD/
+https://ftp.bytemine.net/pub/OpenBSD/
+https://ftp.halifax.rwth-aachen.de/pub/OpenBSD/
+https://artfiles.org/openbsd/
+https://ftp.hostserver.de/pub/OpenBSD/
+https://ftp.fau.de/pub/OpenBSD/
+https://ftp.cc.uoc.gr/pub/OpenBSD/
+https://openbsd.hk/pub/OpenBSD/
+https://ftp.fsn.hu/pub/OpenBSD/
+https://ftp.heanet.ie/pub/OpenBSD/
+https://openbsd.mirror.garr.it/pub/OpenBSD/
+https://mirror.litnet.lt/pub/OpenBSD/
+https://ftp.nluug.nl/pub/OpenBSD/
+https://ftp.bit.nl/pub/OpenBSD/
+https://mirrors.dalenys.com/pub/OpenBSD/
+https://mirror.fsmg.org.nz/pub/OpenBSD/
+https://ftp.icm.edu.pl/pub/OpenBSD/
+https://ftp.rnl.tecnico.ulisboa.pt/pub/OpenBSD/
+https://mirrors.nav.ro/pub/OpenBSD/
+https://mirrors.pidginhost.com/pub/OpenBSD/
+https://mirror.yandex.ru/pub/OpenBSD/
+https://ftp.eu.openbsd.org/pub/OpenBSD/
+https://ftp.yzu.edu.tw/pub/OpenBSD/
+https://www.mirrorservice.org/pub/OpenBSD/
+https://anorien.csc.warwick.ac.uk/pub/OpenBSD/
+https://mirror.bytemark.co.uk/pub/OpenBSD/
+https://mirrors.sonic.net/pub/OpenBSD/
+https://ftp3.usa.openbsd.org/pub/OpenBSD/
+https://mirrors.syringanetworks.net/pub/OpenBSD/
+https://mirrors.gigenet.com/pub/OpenBSD/
+https://openbsd.mirror.constant.com/pub/OpenBSD/
+https://ftp4.usa.openbsd.org/pub/OpenBSD/
+https://ftp5.usa.openbsd.org/pub/OpenBSD/
+https://mirror.esc7.net/pub/OpenBSD/" | sort -R | head -1)
+
+	test -f SHA256-random.sig &&
+			find $TMPDIR -mmin +30 -type f -exec rm $TMPDIR/SHA256-random.sig \;
+	test ! -f SHA256-random.sig &&
+			ftp -V -o SHA256-random.sig "${servers}"snapshots/packages/`arch -s`/SHA256.sig
+}
+
+pkg_downloads() {
+if [[ -f "$pkglist" ]]; then
+	search_results="$(grep -i "$1" $pkglist)"
+	num_results=$(echo "$search_results" | wc -l | xargs)
+
+if [[ -z "$search_results" ]]; then
+    echo -e "[!]${RED} Package not found!\n${RST}"
+    exit 1
+
+  elif [[ $num_results > 1 ]]; then
+
+	i=1
+    for j in $search_results
+    do
+	   echo "$i) $j"
+       list[i]=$j
+       i=$(( i + 1 ))
+    done | column -s '\n' |sed 's@\\|$@\\)\\)@g';echo
+
+    i=1
+    for j in $search_results
+    do
+        list[i]=$j
+        i=$(( i + 1 ))
+    done
+
+    echo -n "${BLU}Choose package or ${YLW}\"Enter\"${BLU} to quit: ${RST}"
+    read i_CHOOSELIST
+
+	if [ -z "${list[$i_CHOOSELIST]}" ]; then
+        echo -n "[-]${RED}Exiting!\n${RST}"
+        exit
+    fi
+
+    #axel -n 10 "${servers}"snapshots/packages/`arch -s`/"${list[$i_CHOOSELIST]}"
+	#wget "${servers}"snapshots/packages/`arch -s`/"${list[$i_CHOOSELIST]}"
+	ftp -V "${servers}"snapshots/packages/`arch -s`/"${list[$i_CHOOSELIST]}"
+	echo
+	signify -V -e -p /etc/signify/openbsd-${setver}-pkg.pub -x $TMPDIR/SHA256-random.sig -m - | sha256 -C - "${list[$i_CHOOSELIST]}"
+	echo -e "\n${YLW}Install command\n${RST}PKG_PATH=${PKG_PATH} ${SUDO} ${PKG_ADD} ${list[$i_CHOOSELIST]}\n"
+    exit
+
+  else
+	#axel -n 10 "${servers}"snapshots/packages/`arch -s`/"$search_results"
+	#wget "${servers}"snapshots/packages/`arch -s`/"$search_results"
+	ftp -V "${servers}"snapshots/packages/`arch -s`/"$search_results"
+	echo
+	signify -V -e -p /etc/signify/openbsd-${setver}-pkg.pub -x $TMPDIR/SHA256-random.sig -m - | sha256 -C - "$search_results"
+	echo -e "\n${YLW}Install command${RST}\nPKG_PATH=${PKG_PATH} ${SUDO} ${PKG_ADD} $search_results\n"
+  fi
+
+else
+  echo -e "[!] ${RED}Packages list  not found${RST}"
+  echo -e "[+] ${YLW}Downloading Packages list${RST}"
+  ftp -Vm  -o- https://ftp.eu.openbsd.org/pub/OpenBSD/snapshots/packages/`arch -s`/index.txt | cut -c 53- > ${pkglist}
+  echo -e "[!] ${BLU}Run again${RST}"
+  exit 1
+fi
+}
+	test -f SHA256.sig &&
+			find $TMPDIR -amin +30 -type f -exec rm  SHA256.sig \;
+	test ! -f SHA256.sig &&
+ 			ftp -Vm -o SHA256.sig https://ftp.eu.openbsd.org/pub/OpenBSD/snapshots/packages/`arch -s`/SHA256.sig
+sha_diff
+
+  if [[ "`cat SHA256.sig | sed -n 2p`" == "`cat SHA256-random.sig | sed -n 2p`" ]];then
+      pkg_downloads $1
+  else
+     sha_diff
+fi

@@ -4,7 +4,7 @@
   unset record
   set postponed     = "+disroot/drafts"
   set signature     = ~/.mutt/accounts/disroot_sig
-  set pgp_sign_as	= 0xCE8D015B2F961358
+  set pgp_sign_as=0x0719E8872FD74053
 
 color status green default
 

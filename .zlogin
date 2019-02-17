@@ -18,3 +18,5 @@
 if (( $+commands[keychain] )); then
   eval $(keychain --quick --gpg2 --dir $TMPDIR --nolock --agents ssh,gpg,gpg --eval git_rsa 0xCE8D015B2F961358 0xriseup)
 fi
+
+

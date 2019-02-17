@@ -55,6 +55,7 @@ if [[ $(id -u) -ne 0 ]];then
    alias mntusb='doas /usr/local/bin/mntusb'
    alias mntsdc='doas /usr/local/bin/mntsdc'
    alias bioctlcontrol='doas /sbin/bioctl softraid0'
+   alias vim='gvim -u /home/$LOGNAME/.vimrc'
 else
    alias wifa='ifconfig athn0 lladdr random up;sh /etc/wiconfig -s athn0'
    alias wifi='ifconfig iwn0 lladdr random up;sh /etc/wiconfig -s iwn0'
@@ -69,7 +70,6 @@ else
    unalias pkg_add
 fi
 
-alias vim='gvim -u /home/$LOGNAME/.vimrc'
 alias ix="curl -n -F 'f:1=<-' http://ix.io"
 alias sprunge="curl -F 'sprunge=<-' http://sprunge.us"
 alias hcat='highlight -O ansi --force'

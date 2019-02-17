@@ -8,14 +8,14 @@ total_run_times 0
 
 TEXT
  printf "^fg(\#00ffff)^bg(\#1c1c1c) ^i(.dzen-icons/mail.xbm) %s " '${exec $HOME/bin/mail_status}'
- printf "^fg(\#ffa500)^bg(\#282a2e) ^i(.dzen-icons/info_03.xbm) %s " '${exec cat $HOME/.logs/irssi_pipe}'
+ printf "^fg(\#ffa500)^bg(\#282a2e) ^i(.dzen-icons/info_03.xbm) %s " '${exec cat $HOME/.irssi/irssi_pipe}'
  printf "^fg(\#66ff33)^bg(\#1c1c1c) ^i(.dzen-icons/cpu.xbm) %-5s" '$cpu%'
  printf "^fg(\#56acff)^bg(\#282a2e) ^i(.dzen-icons/mem.xbm) %-8s" '$mem'
  printf "^fg(\#fff300)^bg(\#1c1c1c) ^i(.dzen-icons/net_down_03.xbm) %-10s " '${downspeed iwn0} '
  printf "^fg(\#fff300) %s " '| ${totaldown iwn0}'
  printf "^fg(\#ff2400)^bg(\#1c1c1c) ^i(.dzen-icons/net_up_03.xbm) %-9s  " '${upspeed iwn0} '
  printf "^fg(\#ff2400) %s " '| ${totalup iwn0}'
- printf "^fg(\#aa44ff)^bg(\#282a2e) ^i(.dzen-icons/spkr_01.xbm) %-5s" '${exec mixerctl -qn outputs.master | awk '{printf "%d",$1/2.55}'}%'
- printf "^fg(\#ffffff)^bg(\#1c1c1c) ^i(.dzen-icons/clock.xbm) %s" '${time %a %b %d %H:%M}'
+# printf "^fg(\#aa44ff)^bg(\#282a2e) ^i(.dzen-icons/spkr_01.xbm) %-5s" '${exec mixerctl -qn outputs.master | awk '{printf "%d",$1/2.55}'}%'
+ printf "^fg(\#ffffff)^bg(\#282a2e) ^i(.dzen-icons/clock.xbm) %s" '${time %a %b %d %H:%M}'
 
 echo

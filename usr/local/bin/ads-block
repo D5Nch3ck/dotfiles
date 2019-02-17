@@ -17,7 +17,7 @@ trap 'rm -f $TMPFILE; exit 1' EXIT KILL INT QUIT TERM
  ftp -VM -o- https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts | grep ^0.0.0.0 | awk '{ print $2 }'
  ftp -VM -o- http://mirror1.malwaredomains.com/files/justdomains
  ftp -VM -o- http://sysctl.org/cameleon/hosts | grep ^127.0.0.1 | awk '{ print $2 }'
- curl -s     https://zeustracker.abuse.ch/blocklist.php?download=domainblocklist
+ curl -s  https://zeustracker.abuse.ch/blocklist.php?download=domainblocklist
  ftp -VM -o- https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt
  ftp -VM -o- https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
  ftp -VM -o- https://hosts-file.net/ad_servers.txt | grep ^127.0.0.1 | awk '{ print $2 }'

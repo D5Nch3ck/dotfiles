@@ -1,0 +1,38 @@
+#!/bin/sh
+progname=${0##*/}
+
+function usage {
+cat <<USAGE
+Usage:
+    ${progname} [-t|--txt] <file>           # Execute to text
+    ${progname} [-b|--bin] <file>           # Text to Execute
+    ${progname} [-u|--url] <url> <filename> # Url to Execute
+USAGE
+}
+
+if [[ -z "$1" ]]; then
+    usage
+    exit 1
+fi
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -t|--txt)
+            cat $2 | gzip -cf | openssl enc -base64 - > $2.txt
+            cat $2.txt | curl -n -F 'f:1=<-' http://ix.io
+            exit 0;;
+        -b|--bin)
+            cat $2 | openssl enc -base64 -d | gunzip > $2.bin
+            chmod +x $2.bin
+            exit 0;;
+        -u|--url)
+            curl -s $2 | openssl enc -base64 -d | gunzip > $3.bin
+            exit 0;;
+        -h|--help)
+            usage
+            exit 1;;
+        *)
+            usage
+            exit 1;;
+    esac
+done

@@ -21,7 +21,7 @@ chatnets = {
     type = "IRC";
     sasl_mechanism = "PLAIN";
     sasl_username = "D5N_ch3ck";
-    sasl_password = "*x*x*x*x*x*x*x*x*x*x*";
+    sasl_password = "***********************************";
   };
 };
 
@@ -125,7 +125,7 @@ settings = {
     hilight_nick_matches = "no";
     hilight_act_color = "%R";
     hilight_color = "%Y";
-    autolog_path = "~/.logs/irssi/$tag/${0}-%Y-%m.log";
+    autolog_path = "~/.irssi/logs/$tag/${0}-%Y-%m.log";
     autolog = "yes";
     show_names_on_join = "no";
   };

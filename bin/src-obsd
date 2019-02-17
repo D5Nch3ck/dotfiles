@@ -1,0 +1,45 @@
+#!/bin/sh
+
+esc=""
+black="${esc}[30m";      red="${esc}[31m"
+yellow="${esc}[33m";     blue="${esc}[34m"
+ylwf="${esc}[30;43m";    magenta="${esc}[31;41m"
+bold="${esc}[1m";        reset="${esc}[0m"
+
+progname=${0##*/}
+
+function usage {
+cat <<USAGE
+${yellow}
+Description:${reset} OpenBSD SRC TOOLS
+${yellow}Usage:${reset}
+    ./${progname} ${blue}[-d|--down]${reset}
+    ./${progname} ${blue}[-u|--up]${reset}
+USAGE
+}
+
+if [ $(id -u) -ne 0 ]; then echo "${red}Root!${reset}";usage;exit 1 ; fi
+
+if [ -z $1 ];then
+	usage
+	exit
+fi
+
+cd -- /usr
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -d|--down)
+            cvs -qd anoncvs@anoncvs.ca.openbsd.org:/cvs checkout -P src
+            exit 0;;
+        -u|--up)
+            cd -- src
+            cvs -q up -Pd -A
+            exit 0;;
+        -h|--help)
+            usage
+            exit 1;;
+        *)
+            usage
+            exit 1;;
+    esac
+done

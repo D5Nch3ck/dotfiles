@@ -1,0 +1,14 @@
+#!/bin/sh
+<<EXAMPLE
+$ printf `echo "\x7f\x45\x4c\x46\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x3e\x00"` >elf.b64
+$ file elf.b64
+elf.b64: ELF 64-bit LSB shared object, x86-64, version 1
+EXAMPLE
+
+progname=${0##*/}
+if [ -z "$1" ];then
+	echo "Description: Shellcode to  Binary converter"
+        echo "Usage:\v./$progname [shellcode-file]"
+        exit 1 
+fi
+printf "`cat $1`" >$1.bin

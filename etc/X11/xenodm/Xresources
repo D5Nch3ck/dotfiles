@@ -1,22 +1,68 @@
-!https://www.romanzolotarev.com/openbsd/xenodm.html
-xlogin.Login.echoPasswd:       true
-xlogin.Login.fail:             Login incorrect or forbidden
+#define WHITE    #EDF6E6
+#define BLACK    #000000
+#define RED        #DA9B9A
+#define BLUE     #7AADD9
+#define BROWN   #6E6967
+#define DKBROWN #54504F
+#define DKBLUE #6187AD
+#define GREY     #54697F
+#define DKGREY #4A566B
+xroot.background: BLACK
+
+! ----------------------------------------------------------------------
+! XLogin
+!
+xlogin.Login.allowRootLogin: false
+xlogin.Login.echoPasswd:   false
+xlogin.Login.fail:         Authorization failed
 xlogin.Login.greeting:
-xlogin.Login.namePrompt:       \040\040\040Login:\040
-xlogin.Login.passwdPrompt:     Password:\040
-
-xlogin.Login.height:           280
-xlogin.Login.width:            380
-xlogin.Login.y:                320
+xlogin.Login.namePrompt:   \040\040\040\040\040\040Login:\040
+xlogin.Login.passwdPrompt: Password:\040
+xlogin.Login.Height:           170
+xlogin.Login.Width:            480
+xlogin.Login.x:                340
+xlogin.Login.y:                340
+xlogin*borderWidth:            0
 xlogin.Login.frameWidth:       0
-xlogin.Login.innerFramesWidth: 0
+xlogin.Login.innerFramesWidth: 1
+xlogin.Login.sepWidth:         0
+xlogin.Login.background:  BLACK
+xlogin.Login.failColor:   RED
+xlogin.Login.foreground:  WHITE
+xlogin.Login.greetColor:  WHITE
+xlogin.Login.inpColor:    BLACK
+xlogin.Login.promptColor: WHITE
+xlogin.Login.hiColor:     WHITE
+xlogin.Login.shdColor:    WHITE
+xlogin.Login.face:       DejaVu Sans-14
+xlogin.Login.failFace:   DejaVu Sans-18:bold
+xlogin.Login.greetFace:  DejaVu Sans-0
+xlogin.Login.promptFace: DejaVu Sans-18
 
-xlogin.Login.background:       black
-xlogin.Login.foreground:       #eeeeee
-xlogin.Login.failColor:        white
-xlogin.Login.inpColor:         black
-xlogin.Login.promptColor:      #eeeeec
-
-xlogin.Login.face:             fixed-13
-xlogin.Login.failFace:         fixed-13
-xlogin.Login.promptFace:       fixed-13
+! ----------------------------------------------------------------------
+! XClock
+!
+xclock.dateFace:         DejaVu Sans-18
+!xclock.dateGeom:         780320
+xclock.dateStr:          %A %d %B %Y
+xclock.timeFace:         DejaVu Sans-32
+!xclock.timeGeom:         780360
+xclock.timeStr:          %H:%M
+xclock*background:       BLACK
+xclock*borderWidth:      0
+xclock*foreground:       WHITE
+xclock.Clock.analog:     false
+xclock.Clock.chime:      false
+xclock.Clock.render:     true
+xclock.Clock.twentyfour: true
+xclock.Clock.update:     10
+! ----------------------------------------------------------------------
+! XMessage
+!
+xmessage*background: BLACK
+xmessage*foreground: WHITE
+xmessage*borderWidth: 0
+xmessage*font: -*-terminus-bold-*-*-*-16-*-*-*-*-*-iso8859-15
+xmessage*message.scrollHorizontal: Never
+xmessage*message.scrollVertical: Never
+xmessage*timeout: 0

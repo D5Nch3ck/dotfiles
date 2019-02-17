@@ -1,0 +1,10 @@
+#!/bin/ksh
+#https://github.com/qbit/dotfiles
+
+YT=$( which youtube-dl )
+MP=$( which mpv )
+
+YTOPTS="-f 18 -g "
+MPOTS="-really-quiet -cache 300"
+
+$MP $MPOPTS `$YT $YTOPTS "$*"`

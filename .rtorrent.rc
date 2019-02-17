@@ -2,8 +2,8 @@ port_range = 6890-6999
 port_random = yes
 use_udp_trackers = yes
 encryption = allow_incoming,enable_retry,prefer_plaintext
-directory = /home/$USER/Downloads/torrent/
-session = /home/$USER/.rtorrent/session/
+directory = /home/test/Downloads/torrent/
+session = /home/test/.rtorrent/session/
 upload_rate = 20
 min_peers = 20
 max_peers = 30
@@ -19,7 +19,7 @@ dht_port = 6881
 peer_exchange = yes
 
 # watch
-schedule = watch_directory,10,10,load_start=/home/$USER/.rtorrent/torrent_files/*.torrent
+schedule = watch_directory,10,10,load_start=/home/test/.rtorrent/torrent_files/*.torrent
 schedule = tied_directory,10,10,start_tied=
 schedule = untied_directory,10,10,close_untied=
 

@@ -1,0 +1,37 @@
+#!/bin/sh
+tmp_template=$(mktemp -d -t vpnbook.XXXXXX)
+tmp_ovpns="vpnbook-ovpn.list"
+tmp_doas="vpnbook-doas.conf"
+
+/usr/bin/ftp -VM -o- https://www.vpnbook.com/freevpn |
+			/usr/bin/grep '/free-openvpn-account/'   |
+			/usr/bin/awk -F\" '{ printf "https://www.vpnbook.com%s\n", $2 }' >${tmp_template}/${tmp_ovpns}
+
+cd -- ${tmp_template}
+
+for i in $(/bin/cat ${tmp_ovpns});
+ do 
+	ftp -D Downloading -V $i;
+ done
+
+for i in $(cat ${tmp_ovpns} | /usr/bin/awk -F/ '{print $5}');
+do 
+ /usr/bin/ftp -D Extracting -Vmo - "file:///${tmp_template}/$i" | bsdtar -xf-
+done
+
+/usr/bin/sed -i 's/auth-user-pass/auth-user-pass \/home\/"$LOGNAME"\/code\/vpnbook-password.txt/g' *.ovpn
+
+/bin/rm *.zip ${tmp_ovpns}
+/bin/cp -v ${tmp_template}/*.ovpn /var/account/local/vpnbook/
+
+/bin/cat << EOF >vpnbook-random-connect.sh
+#!/bin/sh
+servers=\$(echo '`printf "%s\n" "$(/bin/ls -h)"`' | /usr/bin/sort -R | /usr/bin/head -1)
+doas /usr/local/bin/openvpn-openssl --config /var/account/local/vpnbook/"\$servers"
+EOF
+
+for i in $(printf "%s\n" "`/bin/ls *.ovpn`");
+ do
+  printf "permit nopass $LOGNAME as root cmd /usr/local/bin/openvpn-openssl args --config 
+/var/account/local/vpnbook/${i}\n"
+ done > ${tmp_doas}

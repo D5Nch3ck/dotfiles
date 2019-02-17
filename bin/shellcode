@@ -1,0 +1,13 @@
+#!/bin/sh
+
+progname=${0##*/}
+if [ -z "$1" ];then
+	echo "Description: Binary to shellcode converter"
+	echo "Usage:\v./$progname [binary-file]"
+	exit 1
+fi
+
+objdump -d $1 | grep '[0-9a-f]:' | grep -v file | cut -f2 -d\: |
+		 cut -f1-6 -d' ' | tr -s ' ' | tr '\t' ' ' |
+		 sed 's@ $@@g;s@ @\\x@g' | tr  -d '\n' |
+		 sed 's@^@"@;s@$@"@g'

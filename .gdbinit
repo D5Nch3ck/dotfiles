@@ -1,5 +1,4 @@
-source /home/user/code/peda/peda.py
-source /home/user/.local/lib/python2.7/site-packages/voltron/entry.py
+source /home/test/code/peda/peda.py
 set disassembly-flavor intel
 ## Setting default gdb configurations
 # stop printing string in the \0
@@ -38,3 +37,4 @@ set logging overwrite off
 set logging redirect off
 set logging off
 set extended-prompt  \[\e[0;31m\](gdb) >\[\e[0m\] 
+source /home/test/.local/lib/python2.7/site-packages/voltron/entry.py

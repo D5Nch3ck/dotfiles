@@ -1,2 +1,71 @@
-echo "\nDeleting dhclient.leases..."
-test -f /var/db/dhclient.leases.iwn0 && /bin/rm -v /var/db/dhclient.leases.iwn0
+#!/bin/sh
+if [ ! -x /usr/local/bin/gshred ];then
+	echo "ghsred not found!"
+	exit 123
+fi
+
+if [ -f /var/db/dhclient.leases.iwn0 ];then 
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/db/dhclient.leases.* >/dev/null 2>&1
+fi
+
+if [ -f /var/log/lastlog ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/log/lastlog >/dev/null 2>&1
+        /usr/bin/touch /var/log/lastlog
+fi
+if [ -f /var/log/wtmp ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/log/wtmp >/dev/null 2>&1
+        /usr/bin/touch /var/log/wtmp
+fi
+if [ -f /var/log/daemon ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/log/daemon >/dev/null 2>&1
+        /usr/bin/touch /var/log/daemon
+fi
+if [ -f /var/log/messages ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/log/messages >/dev/null 2>&1
+        /usr/bin/touch /var/log/messages
+fi
+if [ -f /var/log/daily.out ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/log/daily.out >/dev/null 2>&1
+        /usr/bin/touch /var/log/daily.out
+fi
+if [ -f /var/log/security.out ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/log/security.out >/dev/null 2>&1
+        /usr/bin/touch /var/log/security.out
+	/bin/chmod 600 /var/log/security.out
+fi
+if [ -f /var/log/xenodm.log ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/log/xenodm.log >/dev/null 2>&1
+        /usr/bin/touch /var/log/xenodm.log
+fi
+if [ -f /var/log/maillog ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/log/maillog >/dev/null 2>&1
+        /usr/bin/touch /var/log/maillog
+fi
+if [ -f /var/log/pflog ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/log/pflog >/dev/null 2>&1
+        /usr/bin/touch /var/log/pflog
+	/bin/chmod 600 /var/log/pflog
+fi
+if [ -f /var/log/secure ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /var/log/secure >/dev/null 2>&1
+        /usr/bin/touch /var/log/secure
+	/bin/chmod 600 /var/log/secure
+fi
+if [ -f /home/test/.Xauthority ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /home/test/.Xauthority >/dev/null 2>&1
+else
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /home/test/.Xauthority* >/dev/null 2>&1
+fi
+if [ -f /root/.Xauthority ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /root/.Xauthority >/dev/null 2>&1
+else
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /.Xauthority* >/dev/null 2>&1
+fi
+if [ -f /home/test/.viminfo ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /home/test/.viminfo >/dev/null 2>&1
+fi
+if [ -f /root/.viminfo ];then
+        /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 /root/.viminfo >/dev/null 2>&1
+fi
+
+/usr/bin/find /var/log/ \( -name \*.gz -o -name \*.old \) -exec /usr/local/bin/gshred -uzf --random-source=/dev/random -n 40 >/dev/null 2>&1 {} \;

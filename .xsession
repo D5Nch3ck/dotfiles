@@ -51,7 +51,7 @@ xset r rate 350 45
 setxkbmap -option ctrl:nocaps
 
 # set background
-#sh $HOME/.fehbg
+sh $HOME/.fehbg
 
 #xidle -program '/usr/X11R6/bin/xlock' -timeout 60 &
 #xconsole -geometry -891+730 &

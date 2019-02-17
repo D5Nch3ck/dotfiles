@@ -1,0 +1,580 @@
+#!/bin/sh
+#
+# v.9.5 2/7/2012 17:30
+#
+# Copyright (c) 2012 Daniel Melameth <daniel@melameth.com>
+#
+# Permission to use, copy, modify and distribute this software for any purpose
+# with or without fee is hereby granted, provided that the above copyright
+# notice and this permission notice appear in all copies.
+#
+# This software is provided by the regents and contributors "as is" and any
+# express or implied warranties, including, but not limited to, the implied
+# warranties of merchantability and fitness for a particular purpose are
+# disclaimed.  In no event shall the regents or contributors be liable for any
+# direct, indirect, incidental, special, exemplary or consequential damages
+# (including, but not limited to, procurement of substitute goods or services;
+# loss of use, data or profits; or business interruption) however caused and on
+# any theory of liability, whether in contract, strict liability or tort
+# (including negligence or otherwise) arising in any way out of the use of this
+# software even if advised of the possibility of such damage.
+# 
+# NAME
+#	wiconfig - simplifies the configuration of wireless interfaces 
+#
+# SYNOPSIS
+#	wiconfig [-dnqs] interface
+#
+# EXAMPLE
+#	Manually configure a wireless interface
+#
+#		# sh /etc/wiconfig iwi0 
+#
+#	Automatically scan for wireless networks and, using previous manual
+#	configurations, configure the wireless interface based on the strongest
+#	wireless signal (for use with hostname.if(5) files)
+#
+#		$ cat /etc/hostname.iwi0
+#		!/bin/sh /etc/wiconfig -q \$if
+#
+#	With the above /etc/hostname.iwi0 in place, iwi0 will be configured
+#	upon startup or whenever /etc/netstart iwi0 is invoked.
+#
+#	wiconfig can also be used in conjunction with apmd(8).  In the
+#	following example, upon resume, it'll check the status of the wireless
+#	connection and, if there is no network connection, it'll automatically
+#	scan for wireless networks and, using previous manual configurations,
+#	configure the wireless interface based on the strongest wireless
+#	signal.
+#
+#		$ cat /etc/apmd/resume
+#		#!/bin/sh
+#		/bin/sh /etc/wiconfig -qs iwi0
+#
+#	apmd will need this file to be executable so you'll want to do this as
+#	well
+#
+#		# chmod 0744 /etc/apm/resume
+#
+# FILES
+#	/etc/wiconfig.db	Wireless network database
+#
+# CAVEATS
+#	1) Only DHCP is supported
+#	2) No user-defined nwid prioritization--the nwid with the strongest
+#		signal will always be preferred
+#	3) Only the first 20 nwids with the strongest signals are used
+#	4) When used within a hostname.if(5), host startup will be delayed
+#		slightly while a wireless network scan is performed
+#	5) Database records are never purged--existing entries will be updated,
+#		but unwanted entries need to be removed manually  
+#	6) Hidden nwids are not supported
+
+# set -x
+
+# Save default IFS
+oIFS=$IFS
+myname=$0
+
+max=20
+# Number of seconds to wait before checking interface status
+seconds=3
+wiconfigdb="/etc/wiconfig.db"
+
+function usage {
+	echo "usage: $myname [-dnqs] interface"
+	exit 1
+}
+
+# Determine network status and name
+function review {
+	# Assume we are not connected to a network
+	typeset _i=1 _status=false _ifconfig _nwid _yn
+	# We are being called from apmd
+	$quiet && sleep 2
+	# Need to use a co-process here to handle _status (and _nwid?)
+	ifconfig "$if" |& while read -p _ifconfig; do
+		case $_i in
+			# Sixth line/status
+			6)	active $_ifconfig && _status=true;;
+			# Seventh line/nwid
+			7)	# Connected to an active network
+				if $_status; then
+					set $_ifconfig
+        				_nwid=${3#\"}
+				        # nwid begins with a quote
+				        if [ ${#3} -gt ${#_nwid} ]; then
+				                # nwid is not hidden
+                				if [ ${#3} -gt 2 ]; then
+				                        IFS='"'
+                        				set $_ifconfig
+                        				_nwid="$2"
+                        				IFS=$oIFS
+                				else
+                        				unset _nwid
+                				fi
+        				fi
+				fi
+				break;;
+		esac
+		_i=$(($_i+1))
+	done
+
+	if $_status; then
+		if $quiet; then
+			exit
+		else
+			different "$_nwid"
+		fi
+	else
+		start
+	fi
+}
+
+# Determine if the network is active
+function active {
+	typeset _status=$*
+	typeset _length=${#_status}
+	_status=${_status%active}
+	# Network is active
+	if [ ${#_status} -lt $_length ]; then
+		return
+	fi
+	return 1
+}
+
+function different {
+	typeset _yn
+	echo "Currently connected to $*."
+	read _yn?"Would you like to connect to a different network (y/n)? "
+	case $_yn in
+		y)	start;;
+		n)	exit;;
+		*)	different "$*";;
+	esac
+}
+
+function start {
+	readdb
+	scan
+	createarray
+	match
+	# Position of nwid in db
+	typeset _n=$?
+	# Automatically configuring interface
+	if $quiet; then
+		# Found an nwid match 
+		if [ $_n -ne 0 ]; then
+			echo "connecting to wireless network ${r[$_n]}"
+			configure "${r[$_n]}" "${r[$_n+2]}"
+		else
+			exit 1
+		fi
+	else
+		if [ $_n -ne 0 ]; then
+			# Reconnection desired
+			if $(reconnect $_n); then
+				configure "${r[$_n]}" "${r[$_n+2]}"
+				exit
+			fi
+		fi
+		menu
+	fi
+}
+
+function readdb {
+	# If db exists and is readable
+	if [ -r $wiconfigdb ]; then
+		typeset _i=1
+		while read r[$_i]; do
+			_i=$((_i+1))
+		done < $wiconfigdb
+		# Remove newline from array as it's counted in ${#r[@]}
+		unset r[$_i]
+	fi
+}
+
+# Parse and sort ifconfig nwid output
+function scan {
+	# Need to include a quote to account for nwids with spaces
+	# IFS=' "'
+	# IFS=$oIFS
+	echo -n > "$output"
+	typeset _nwids _args _nwid
+
+	! $quiet && echo "Performing wireless scan..."
+	# Parse ifconfig nwid output for sorting
+	ifconfig $if scan | grep ^[[:space:]]*nwid | while read _nwids; do
+		# nwid name chan channel bssid mac db speed options
+		# Required to set positional parameters
+		set $_nwids
+        	_args=$#
+		# Remove possible leading double quote
+                _nwid=${2#\"}
+                # nwid begins with a quote
+		if [ ${#2} -gt ${#_nwid} ]; then
+			# nwid is not hidden
+			if [ ${#2} -gt 2 ]; then
+				IFS='"'
+				set $_nwids
+				_nwid=$2
+				shift 2
+				_nwids=$*
+				IFS=$oIFS
+				set $_nwids
+			else
+				continue
+			fi
+		else
+			shift 2
+		fi
+
+		# shift
+        	# nwid has one or more spaces
+        	# if [ $_args -gt 9 ]; then
+                #	# Remove possible leading double quote
+                #	_nwid=${1#\"}
+                #	shift
+                #	_args=$(($_args-1))
+                #	while [ $_args -gt 9 ]; do
+		#		_nwid=$_nwid $1
+                #        	# _nwid=$_nwid\ $1
+                #        	shift
+                #        	_args=$(($_args-1))
+                #	done
+		#	# Append and remove trailing double quote
+                #	_nwid=$_nwid\ ${1%\"}
+        	# else
+                #	_nwid=$1
+        	# fi
+
+		# shift
+		# unset _nwid
+		# nwid might contain one or more spaces
+		# while [ $_args -ge 9 ]; do
+		#	_nwid="${_nwid:-$1} ${_nwid:+$1}"
+		#	shift
+		#	_args=$(($_args-1))
+		# done
+
+		# nwid is hidden?
+		# [[ X$4 = X00:00:00:00:00:00 ]] && continue	
+
+		echo -n "$_nwid" >> $output
+		# Channel
+		echo -n "|$2" >> $output
+		# MAC
+		echo -n "|$4" >> $output
+		# Signal quality
+		printf "|%02d" ${5%dBm} >> $output
+		# Speed
+		echo -n "|$6" >> $output
+		# Options
+		echo "|$7" >> $output
+		# echo $name $number $chan $mac $db $speed $options
+	done
+	IFS=$oIFS
+
+	# Wireless network(s) found
+	if [ -s "$output" ]; then
+		# Sort nwids by greatest signal quality
+		sort -rk 4 -o "$input" -t "|" "$output"
+	else
+		if ! $quiet; then
+			rescan
+		else
+			exit 1
+		fi
+	fi
+}
+
+function rescan {
+	typeset _rq
+	read _rq?"No wireless networks found.  Enter r to rescan or q to quit: "
+	case $_rq in
+		r)	scan;;
+		q)	exit;;
+		*)	rescan;;
+	esac
+}
+
+# Create sorted array of top $max nwids
+function createarray {
+	IFS='|'
+	typeset _i=1 _length
+	# If the array exists
+	[[ -n ${index[1]} ]] && \
+		unset nwid chan mac db speed options index access
+	while read nwid[$_i] chan[$_i] mac[$_i] db[$_i] speed[$_i] options[$_i] && [ $_i -le $max ]; do
+		index[$_i]=$_i
+		# Determine if access is secure
+		_length=${#options[$_i]}
+		options=${options[$_i]#privacy}
+		# Access is secure
+		if [ ${#options} -lt $_length ]; then
+			access[$_i]="Secured"
+		else
+			access[$_i]="Unsecured"
+		fi
+		_i=$(($_i+1))
+	done < "$input"
+	IFS=$oIFS
+}
+
+# Linear search for best nwid match
+function match {
+	typeset _i _m
+	# Start with the nwid with the strongest signal
+	for _i in ${index[@]}; do
+		matchdb "${nwid[$_i]}" "${mac[$_i]}"
+		_m=$?
+		# Match found
+		[[ $_m -ne 0 ]] && return $_m
+	done
+	return 0
+}
+
+# Return match in the db
+function matchdb {
+	# Start with last MAC in db
+	typeset _i=$((${#r[@]}-1))
+	# More records in the db
+	while [ $_i -gt 0 ]; do 
+		# MAC and nwid matches
+		if [ "X$2" = "X${r[$_i]}" ] && \
+			[ "X$1" = "X${r[$_i-1]}" ]; then
+			# Return position of nwid in db
+			return $(($_i-1))
+		fi
+		# Move to previous MAC (and network) in db
+		_i=$(($_i-3))
+	done
+}
+
+# Configure interface
+function configure {
+	#ifconfig $if -nwid -nwkey -wpakey down > /dev/null 2>&1
+	# Apparently we need to use eval and single quotes to handle nwids with
+	# spaces
+	eval ifconfig $if nwid \'$1\' $2 lladdr random up > /dev/null 2>&1
+	rcctl restart dnscrypt_proxy unbound
+	if [ ! $nodhcp ]; then
+		dhclient $if
+	fi
+}
+
+function reconnect {
+	typeset _yn
+	read _yn?"${r[$1]} found.  Would you like to reconnect (y/n)? "
+	case $_yn in
+		y)	return;;
+		n)	return 1;;
+		*)	reconnect;;
+	esac
+}
+
+function menu {
+	typeset _i
+	echo
+	printf "     %-40s %-6s %-10s\n" "Network Name" "Signal" "Access"
+	echo
+	for _i in ${index[@]}; do
+		printf "%3d) %-40s %-6s %-10s\n" \
+			$_i "${nwid[$_i]}" "${db[$_i]}dB" "${access[$_i]}"
+	done
+	echo
+	read choice?"Enter the number of the network to connect to (or r to rescan or q to quit): "
+	if [ $choice -ge 1 ] && [ $choice -le ${#index[@]} ]; then
+		if [ "X${access[$choice]}" = XSecured ]; then
+			password
+			determine
+		else
+			configure "${nwid[$choice]}"
+			update
+		fi
+	elif [ "X$choice" = "Xr" ]; then
+		start
+	elif [ "X$choice" = "Xq" ]; then
+		exit
+	else
+		echo "Invalid choice"
+		sleep 1
+		menu
+	fi
+}
+
+function password {
+	stty -echo
+	read -r pass1?"Enter the password for ${nwid[$choice]} (will not echo): "
+	echo
+	read -r pass2?"Enter the password for ${nwid[$choice]} (again): "
+	echo
+	stty echo
+	# If passwords do not match or are blank
+	if [ "X$pass1" != "X$pass2" ] || [ "X$pass1" = X ]; then
+		echo "Passwords do not match or are invalid"
+		sleep 1
+		password
+	fi
+}
+
+# Determine if we are using WPA or WEP
+function determine {
+	echo "Connecting to wireless network ${nwid[$choice]}..." 
+	#ifconfig "$if" -nwid -nwkey -wpakey down > /dev/null 2>&1
+	# Must bring interface up for status to become active
+	ifconfig "$if" nwid "${nwid[$choice]}" wpakey "$pass1" lladdr random up > /dev/null 2>&1
+	typeset _status=$?
+	rcctl restart dnscrypt_proxy unbound
+	# Lackluster workaround for athn taking a while to become active
+	[[ $if = athn? ]] && seconds=11
+	sleep $seconds
+	# Network is active
+	if [ $_status -eq 0 ] && active $(ifconfig "$if" | fgrep status); then
+		update wpa
+	else
+		ifconfig "$if" -nwid -wpakey down > /dev/null 2>&1
+		ifconfig "$if" nwid "${nwid[$choice]}" nwkey "$pass1" lladdr random up > /dev/null 2>&1
+		_status=$?
+		rcctl restart dnscrpyt_proxy unbound
+		sleep $seconds
+		if [ $_status -eq 0 ] && \
+			active $(ifconfig "$if" | fgrep status); then
+			update wep
+		else
+			echo "Unable to connect"
+			exit 1
+		fi
+	fi
+	if [ ! $nodhcp ]; then
+		dhclient $if
+	fi
+}
+
+# Update existing db record, if it exists, or create a new one
+function update {
+	# Number of entries in db
+	typeset _i=${#r[@]} _m
+	# db is not empty
+	if [ $_i -gt 0 ]; then
+		matchdb "${nwid[$choice]}" "${mac[$choice]}"
+		_m=$?
+		# Match found
+		if [ $_m -ne 0 ]; then
+			secure $(($_m+2)) $1
+			createdb
+			return
+		fi
+	fi
+	r[$_i+1]="${nwid[$choice]}"
+	r[$_i+2]="${mac[$choice]}"
+	secure $(($_i+3)) $1
+	createdb
+}
+
+# Set nwid access parameters for db record
+function secure {
+	case $2 in
+		wpa)	r[$1]="wpakey \"$pass1\"";;
+		wep)	r[$1]="nwkey $pass1";;
+		# Open nwid
+		*)	r[$1]="";;
+	esac
+}
+
+function createdb {
+	# If the db does not exist, create and secure it
+	if [ ! -a "$wiconfigdb" ]; then
+		touch "$wiconfigdb"
+		chmod 640 "$wiconfigdb"
+	fi
+
+	echo -n > "$wiconfigdb"
+	typeset _i=1
+	while [ $_i -le ${#r[@]} ]; do
+		echo "${r[$_i]}" >> "$wiconfigdb"
+		_i=$(($_i+1))
+	done
+}
+
+function end {
+	rm -f "$output" "$input"
+}
+
+trap end EXIT ERR INT KILL TERM
+
+# Debugging for functions (must be specified after the function declaration)
+# typeset -ft review
+# typeset -ft active
+# typeset -ft different
+# typeset -ft start
+# typeset -ft readdb 
+# typeset -ft scan
+# typeset -ft rescan 
+# typeset -ft createarray
+# typeset -ft match
+# typeset -ft matchdb
+# typeset -ft configure
+# typeset -ft reconnect
+# typeset -ft menu 
+# typeset -ft password
+# typeset -ft determine
+# typeset -ft update
+# typeset -ft secure
+# typeset -ft createdb
+
+debug=false
+# Assume we are being used interactively
+quiet=false
+# Do not check the wireless network status before configuring the interface
+# (expected in the hostname.if(5) case)
+status=false
+
+if [ "X$(whoami)" != Xroot ]; then
+	echo "$myname must be run as root"
+	exit 1
+fi
+
+while getopts dnqs opt; do
+	case $opt in
+		d)	debug=true;;
+		n)	nodhcp=true;;
+		q)	quiet=true;; 
+		s)	status=true;;
+		?)	usage;;
+	esac
+done
+
+if $debug; then
+	set -x
+	typeset -ft review active different start readdb \
+	scan rescan createarray match matchdb configure reconnect menu \
+	password determine update secure createdb
+fi
+
+shift $(($OPTIND-1))
+
+# No interface specified
+[[ -z "$1" ]] && usage
+
+if="$1"
+ifconfig "$if" > /dev/null 2>&1
+
+# Interface does not exist
+if [ $? -ne 0 ]; then
+	# Manually configuring interface
+	if ! $quiet; then
+		echo "Interface $if does not exist"
+	fi
+	exit 1
+fi
+
+output=$(mktemp)
+input=$(mktemp)
+
+# Running from hostname.if
+if $quiet && ! $status; then
+	start
+else
+	review
+fi

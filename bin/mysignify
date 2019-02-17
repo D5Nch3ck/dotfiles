@@ -1,0 +1,32 @@
+#!/bin/ksh
+
+progname=${0##*/}
+
+function usage {
+	echo "Example: ./$progname install64.fs"
+	echo "Usage:\v./$progname [...]"
+}
+if [ -z "$1" ];then
+	usage;exit 1
+fi
+ 
+case $(id -u) in
+  0)
+    if [ ! -f /etc/signify/my-pkg.sec ];then
+      signify -Gns /etc/signify/my-pkg.sec -p /etc/signify/my-pkg.pub
+    fi
+    echo "Creating SHA256.my..."
+    find "$@" -type f  -print0 | xargs -0r sha256 >SHA256.sums
+    echo "Verify file created"
+    signify -S -s /etc/signify/my-pkg.sec -m SHA256.sums -x - >SHA256.my
+    cat SHA256.sums >>SHA256.my
+    
+    echo "Testing..."
+    rm SHA256.sums
+
+    signify -Vep /etc/signify/my-pkg.pub -x SHA256.my -m - |
+            sha256 -C - $(cat SHA256.my | awk '{print $2}' |
+            tr -d \( | tr -d \) | sed '1,2d')
+    ;;
+  *) echo "ROOT!" && exit 1;;
+esac

@@ -1,7 +1,25 @@
 #!/bin/sh
+if [[ $(id -u) -eq 0 ]];then
+	echo "Root!"
+	exit 1;
+fi
 
+cmd=$@
 if [ "$#" -gt "0" ];then
-	eval su root -c \"$@\"
+	which `echo "$cmd" | awk '{print $1}' | cut -d'/' -f2` >/dev/null 2>&1
+	if [[ $?  == 0 ]];then
+	    if [[ $(which `echo "$cmd" | awk '{print $1}'` | cut -d'/' -f3) == $LOGNAME ]];then
+		eval su root -c \"/home/$LOGNAME/bin/$cmd\"
+	    else
+	    	eval su root -c \"$cmd\"
+	    fi
+
+	elif [[ "$(command -v $cmd | awk -F\' '{print $2}' | cut -f1 -d' ')" == "doas" ]];then
+                $(command -v $cmd | awk -F\' '{print $2}')
+	   else
+	       echo "$(echo "$cmd"| awk '{print $1}'): Command not found!"
+	        exit 123
+	fi
 else
-	su -l root
+	su
 fi 

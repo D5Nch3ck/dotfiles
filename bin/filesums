@@ -1,0 +1,2 @@
+#!/bin/ksh
+find "$@" -type f  -print0 | xargs -0r sha256

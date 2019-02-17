@@ -1,0 +1,4 @@
+#!/bin/ksh 
+
+cd -- /usr/ports
+make search key=$1 | awk '/Path:/{print $2}'

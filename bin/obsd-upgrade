@@ -1,0 +1,4 @@
+#!/bin/sh
+rm -rfv /home/test/code/obsd-sets/obsd-new
+cp -rv /home/test/code/obsd-sets/upgrade/ /home/test/code/obsd-sets/obsd-new
+/home/test/code/snap/snap

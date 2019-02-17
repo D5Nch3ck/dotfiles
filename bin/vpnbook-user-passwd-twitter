@@ -1,0 +1,6 @@
+#!/bin/sh
+/usr/bin/ftp -VM -o- https://twitter.com/vpnbook |
+        /usr/bin/sed -e 's/<[^>]*>//g' | /usr/bin/grep 'Password:' |
+	    /usr/bin/head -1 | /usr/bin/awk '{ printf "%s\n%s\n", $5, $7 }' > $HOME/code/vpnbook-password.txt
+
+cat $HOME/code/vpnbook-password.txt

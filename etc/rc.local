@@ -1,2 +1,2 @@
 /usr/local/bin/random-hostname.sh
-/usr/local/bin/dbus-uuidgen > /etc/machine-id
+/usr/bin/openssl rand -hex 16 > /etc/machine-id

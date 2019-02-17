@@ -21,8 +21,8 @@ if [[ -f "$playlist" ]]; then
     echo -e "$search_results\n"
     echo -e "$RED Multitple results found. Refine search.\n$RST"
     exit 1
-  else
-    sh -c 'mpv -really-quiet -cache 2048 "$search_results"'
+  else 
+    mpv --ytdl-format=93 -really-quiet -cache 2048 "$search_results"
   fi
 else
   echo -e "$RED Playlist not found\n$RST"

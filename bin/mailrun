@@ -2,11 +2,11 @@
 #
 # ~/bin/mailrun
 #
-pid=$(ps | grep offlineimap | grep -v grep | grep offlineimap | cut -d' ' -f1)
+pid="$(ps | grep offlineimap | grep -v grep | grep offlineimap | awk '{print $1}' | xargs)"
 
-if /bin/ps  $pid; then
-  echo "offlineimap ($pid): another instance running.\n"
-  kill -9 $pid
+if [[ $pid != "" ]];then
+     echo "offlineimap ($pid): another instance running.\n"
+     kill -9 $pid
 fi
 
-offlineimap -o -u quiet &
+offlineimap >/dev/null 2>&1 &

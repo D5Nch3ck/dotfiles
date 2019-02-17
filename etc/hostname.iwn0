@@ -1,4 +1,1 @@
--chan -bssid -wpakey -inet6
-nwid "Privacy" lladdr "random"
-wpakey "*********************"
-dhcp
+!/bin/sh /etc/wiconfig -q \$if

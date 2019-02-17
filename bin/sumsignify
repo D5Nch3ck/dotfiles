@@ -1,0 +1,9 @@
+#!/bin/sh
+progname=${0##*/}
+
+if [ -z "$1" ];then
+        echo "Usage:\v./$progname file.pub SHA256.sig";exit 1
+fi
+
+signify -Vep /etc/signify/$1 -x $2 -m - | sha256 -C - \
+	$(cat $2 | awk '{print $2}' | tr -d \( | tr -d \) | sed '1,2d')

@@ -4,7 +4,7 @@
 #
 
 DEST=$1
-LIST=/home/$USER/.config/backup.list
+LIST=/home/$LOGNAME/.config/backup.list
 
 
 if [[ -z $DEST ]]; then
@@ -12,7 +12,5 @@ if [[ -z $DEST ]]; then
   exit 1
 fi
 
-#sudo "
   rsync -av --delete-excluded --exclude-from=$LIST / $DEST;
   date > $DEST/BACKUP
-#"

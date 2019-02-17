@@ -69,7 +69,7 @@ esac
 
 case "$mimetype" in
     # Syntax highlight for text files:
-    text/* | */xml)
+    text/* | */xml | */x-java | */plain)
         try highlight --out-format=ansi "$path" && { dump | trim; exit 5; } || exit 2;;
     # Ascii-previews of images:
     image/*)
@@ -81,8 +81,10 @@ case "$mimetype" in
         # Use sed to remove spaces so the output fits into the narrow window
         try mediainfo "$path" && { dump | trim | sed 's/  \+:/: /;';  exit 5; } || exit 1;;
     # Syntax highlight for sh files:
-	*/x-shellscript)
+	*/x-shellscript | */x-perl)
         try highlight --out-format=ansi "$path" && { dump | trim; exit 5; } || exit 2;;
-esac
+    */x-sharedlib | */x-executable)
+        try readelf -h "$path" && { dump | trim; exit 5; } || exit 2;;
+    esac
 
 exit 1
