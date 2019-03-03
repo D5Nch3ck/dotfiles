@@ -1,24 +1,24 @@
 #!/bin/sh
 echo "freevpnbe">$HOME/code/freevpn/FreeVPNbe-password.txt
-ftp -VM -o- https://freevpn.be/accounts/ | sed 's/<[^>]*>//g' |
-awk '/Password:/{print $8}'|tail -1|sed 's/TCP*.*//g' >>$HOME/code/freevpn/FreeVPNbe-password.txt
+ftp -VM -o- https://freevpn.be/accounts/ | sed 's/<[^>]*>//g' | sed 's/<[^>]*>//g'|
+grep -i password | cut -d' ' -f49 >>$HOME/code/freevpn/FreeVPNbe-password.txt
 
 echo "freevpnme">$HOME/code/freevpn/FreeVPNme-password.txt
 ftp -VM -o- https://freevpn.me/accounts/ | sed 's/<[^>]*>//g' |
-awk '/Password:/{print $12}'|tail -1|sed 's/TCP*.*//g' >>$HOME/code/freevpn/FreeVPNme-password.txt
+grep -i password | cut -d' ' -f49 >>$HOME/code/freevpn/FreeVPNme-password.txt
 
 echo "freevpnit">$HOME/code/freevpn/FreeVPNit-password.txt
 ftp -VM -o- https://freevpn.it/accounts/ | sed 's/<[^>]*>//g' |
-awk '/Password:/{print $8}'|tail -1|sed 's/TCP*.*//g'>>$HOME/code/freevpn/FreeVPNit-password.txt
+grep -i password | cut -d' ' -f49 >>$HOME/code/freevpn/FreeVPNit-password.txt
 
 echo "freevpnse">$HOME/code/freevpn/FreeVPNse-password.txt
 ftp -VM -o- https://freevpn.se/accounts/ | sed 's/<[^>]*>//g' |
-awk '/Password:/{print $8}'|tail -1|sed 's/TCP*.*//g'>>$HOME/code/freevpn/FreeVPNse-password.txt
+grep -i password | cut -d' ' -f49 >>$HOME/code/freevpn/FreeVPNse-password.txt
 
 echo "freevpncouk">$HOME/code/freevpn/FreeVPNcouk-password.txt
 ftp -VM -o- https://freevpn.co.uk/accounts/ | sed 's/<[^>]*>//g' |
-awk '/Password:/{print $8}'|tail -1|sed 's/TCP*.*//g'>>$HOME/code/freevpn/FreeVPNcouk-password.txt
+grep -i password | cut -d' ' -f49 >>$HOME/code/freevpn/FreeVPNcouk-password.txt
 
 echo "freevpnim">$HOME/code/freevpn/FreeVPNim-password.txt
 ftp -VM -o- https://freevpn.im/accounts/ | sed 's/<[^>]*>//g' |
-awk '/Password:/{print $8}'|tail -1|sed 's/TCP*.*//g'>>$HOME/code/freevpn/FreeVPNim-password.txt
+grep -i password | cut -d' ' -f49 >>$HOME/code/freevpn/FreeVPNim-password.txt
