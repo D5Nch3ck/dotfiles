@@ -1,0 +1,7 @@
+DataDirectory /home/test/TorBrowser-Data/Data/tor_data
+HiddenServiceDir /home/test/TorBrowser-Data/http_service
+HiddenServicePort 80 127.0.0.1:8000
+
+#UseBridges 1
+#ClientTransportPlugin obfs4 exec /usr/local/bin/obfs4proxy
+#Bridge 92.22.136.72:8443 12B977C1A3D24EF3E55D28B37918E5DFF884A412
