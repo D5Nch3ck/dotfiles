@@ -49,6 +49,7 @@ ______________________________________________________________________________
 \>q
 
 \# newfs /dev/rsd0a
+
 \# bioctl -c C -r 999999999 -l /dev/sd0d -k /dev/sd2d softraid0
 
 \# install
@@ -96,7 +97,9 @@ enter
 yes
 
 \# mount /dev/sd0a /mnt2
+
 \# cp -v /mnt/bsd* /mnt2
+
 \# reboot
 
 #ADD: softdep,noatime
