@@ -13,12 +13,17 @@ ______________________________________________________________________________
 ![Luakit](screenshots/luakit.png)
 
 #Mount MFS (622e43df6306aafc.b swap)
+
 \# mkdir /tmp/memarea
+
 \# mount_mfs -s 524288 622e43df6306aafc.b /tmp/memarea
 
 #OpenBSD INSTALL (keydisk)
+
 \# fdisk -iy sd0
+
 \# disklabel -E sd0
+
 \>z
 
 \>a a size 70M 
